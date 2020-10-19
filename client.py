@@ -2,14 +2,15 @@ import requests
 import asyncio
 import json
 import datetime
-import discord
 import asyncio
 import nest_asyncio
+import discordClient
 from enum import Enum
 from autobahn.wamp.types import SubscribeOptions
 from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
 from lzstring import LZString
 from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 
 nest_asyncio.apply()
 
@@ -40,34 +41,29 @@ def getRelay():
 	relays = getRelays.json()['args'][0]
 	return list(relays.keys())[0]
 
-class DiscordClient(discord.Client):
-	async def on_ready(self):
-		print('We have logged in as {0.user}'.format(self))
-
-	async def on_message(self, message):
-		if message.author == self.user:
-			return
-
-		if message.content.startswith('$hello'):
-			await message.channel.send('Hello!')
+TOKEN = "NzY2NzE4Mjc1NDY3MjE0OTQw.X4ncCQ.0h147vr2XBQE9Xpz05tkmOIdDgs"
 
 class Component(ApplicationSession):
-	_TOKEN = "NzY2NzE4Mjc1NDY3MjE0OTQw.X4ncCQ.0h147vr2XBQE9Xpz05tkmOIdDgs"
-
 	async def onJoin(self, details):
-		self.client = DiscordClient()
-		
-		# print("start")
-		# loop = asyncio.new_event_loop()
-		# loop.create_task(self.client.start(self._TOKEN))
-		# asyncio.set_event_loop(loop)
-		# loop.run_forever()
-		# print("fin")
+		def startClient():
+			loop = asyncio.new_event_loop()
+			asyncio.set_event_loop(loop)
+			
+			client = discordClient.DiscordClient(self)
+			
+			ret = loop.run_until_complete(client.start(TOKEN))
+			loop.close()
+			return ret
+
+		print("start")
+		executor = ThreadPoolExecutor(2)
+		executor.submit(startClient)
+		print("fin")
 
 		self.currentEvents = await self.fetchEvents()
 		if self.currentEvents == []:
 			print("No events currently ongoing. Exiting.")
-			self.leave()
+			# self.leave()
 		else:
 			self.selectedEvent = await self.menu(self.currentEvents)
 			await self.subscribeToEvent(self.selectedEvent)
@@ -81,13 +77,13 @@ class Component(ApplicationSession):
 			return res
 	
 	async def menu(self, events):
-		print("Pick event:")
+		events = []
 		for idx, event in enumerate(events):
-			print(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
+			events.append(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
 		
-		menuSelect = int(input("Selection: ")) - 1
-		selection = self.currentEvents[menuSelect]
-		return selection
+		if events == []:
+			return "No events currently ongoing."
+		return "\n".join(events)
 
 	async def subscribeToEvent(self, event):
 		print("Subscribing to " + event)
