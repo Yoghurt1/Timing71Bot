@@ -5,6 +5,7 @@ import datetime
 import asyncio
 import nest_asyncio
 import discordClient
+from os import environ
 from enum import Enum
 from autobahn.wamp.types import SubscribeOptions
 from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
@@ -13,16 +14,6 @@ from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 
 nest_asyncio.apply()
-
-# def getBestRelay(relays):
-#     clients = 1000
-#     bestRelay = ""
-#     for key, value in relays.items():
-#         print(value[0])
-#         print(clients)
-#         if value[0] < clients:
-#             clients = value
-#             bestRelay = key
 
 class MessageClass(Enum):
 	INITIALISE_DIRECTORY = 1
@@ -41,7 +32,7 @@ def getRelay():
 	relays = getRelays.json()['args'][0]
 	return list(relays.keys())[0]
 
-TOKEN = "NzY2NzE4Mjc1NDY3MjE0OTQw.X4ncCQ.0h147vr2XBQE9Xpz05tkmOIdDgs"
+TOKEN = environ["DISCORD_TOKEN"]
 
 class Component(ApplicationSession):
 	async def onJoin(self, details):
@@ -55,29 +46,19 @@ class Component(ApplicationSession):
 			loop.close()
 			return ret
 
-		print("start")
 		executor = ThreadPoolExecutor(2)
 		executor.submit(startClient)
-		print("fin")
-
-		self.currentEvents = await self.fetchEvents()
-		if self.currentEvents == []:
-			print("No events currently ongoing. Exiting.")
-			# self.leave()
-		else:
-			self.selectedEvent = await self.menu(self.currentEvents)
-			await self.subscribeToEvent(self.selectedEvent)
 
 	async def fetchEvents(self):
 		try:
 			res = await self.call("livetiming.directory.listServices")
 		except Exception as e:
-			print("Fucked", e)
+			print("Failed to fetch events: ", e)
+			return None
 		else:
 			return res
 	
 	async def menu(self, events):
-		events = []
 		for idx, event in enumerate(events):
 			events.append(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
 		
@@ -96,12 +77,14 @@ class Component(ApplicationSession):
 		def onNewTrackMessage(i):
 			print("[TRACK EVENT]")
 			print(i)
+			return i
 
 		def onNewCarMessage(i):
 			print("[CAR EVENT]")
 			pl = i["payload"]
 			carNum = next(iter(pl))
 			print(pl[carNum][-1])
+			return pl[carNum][-1]
 
 		await self.subscribe(onTimingEvent, "livetiming.service." + event["uuid"])
 		await self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
