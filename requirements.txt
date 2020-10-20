@@ -1,0 +1,5 @@
+autobahn==20.7.1
+discord==1.0.1
+lzstring==1.0.3
+nest-asyncio==1.4.1
+requests==2.22.0
