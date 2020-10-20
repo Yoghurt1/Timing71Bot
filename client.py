@@ -35,6 +35,7 @@ def getRelay():
 TOKEN = environ["DISCORD_TOKEN"]
 
 class Component(ApplicationSession):
+	_events = []
 	async def onJoin(self, details):
 		def startClient():
 			loop = asyncio.new_event_loop()
@@ -49,6 +50,8 @@ class Component(ApplicationSession):
 		executor = ThreadPoolExecutor(2)
 		executor.submit(startClient)
 
+		self._events = await self.fetchEvents()
+
 	async def fetchEvents(self):
 		try:
 			res = await self.call("livetiming.directory.listServices")
@@ -57,16 +60,24 @@ class Component(ApplicationSession):
 			return None
 		else:
 			return res
-	
-	async def menu(self, events):
-		for idx, event in enumerate(events):
-			events.append(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
-		
-		if events == []:
-			return "No events currently ongoing."
-		return "\n".join(events)
 
-	async def subscribeToEvent(self, event):
+	def refreshEvents(self):
+		self._events = yield self.fetchEvents()
+	
+	async def menu(self):
+		self.refreshEvents()
+		currentEvents = []
+		if self._events == []:
+			return "No events currently ongoing."
+		
+		for idx, event in enumerate(self._events):
+			currentEvents.append(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
+		
+		return "\n".join(currentEvents)
+
+	async def subscribeToEvent(self, eventNum):
+		self.refreshEvents()
+		event = self._events[eventNum - 1]
 		print("Subscribing to " + event)
 
 		def onTimingEvent(i):
