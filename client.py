@@ -138,8 +138,8 @@ class Component(ApplicationSession):
 			carNum = next(iter(pl))
 			msg = pl[carNum][-1]
 			print(msg)
-			# if msg[3] in ['sb', 'raceControl']:
-			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
+			if msg[3] not in ['pb']:
+				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
 			print("[PIT EVENT]")
