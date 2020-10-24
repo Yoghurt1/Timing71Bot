@@ -164,12 +164,18 @@ class Component(ApplicationSession):
 			return (msg[1] + " - " + msg[2])
 
 	def formatTrackMessage(self, msg):
-		if "Full course yellow" in msg[2]:
+		if "full course yellow" in msg[2].lower():
 			return (FlagEmotes.Fcy.value + msg[1] + " - " + msg[2] + FlagEmotes.Fcy.value)
-		if "Safety car" in msg[2]:
+		if "safety car" in msg[2].lower():
 			return (FlagEmotes.SafetyCar.value + msg[1] + " - " + msg[2] + FlagEmotes.SafetyCar.value)
-		if "Green" in msg[2]:
+		if "green" in msg[2].lower():
 			return (FlagEmotes.Green.value + msg[1] + " - " + msg[2] + FlagEmotes.Green.value)
+		if "warning" in msg[2].lower():
+			return (FlagEmotes.BlackWhite.value + msg[1] + " - " + msg[2] + FlagEmotes.BlackWhite.value)
+		if "penalty" in msg[2].lower():
+			return (FlagEmotes.Black.value + msg[1] + " - " + msg[2] + FlagEmotes.Black.value)
+		else:
+			return (msg[1] + " - " + msg[2])
 		
 
 	def onDisconnect(self):
