@@ -111,7 +111,9 @@ class Component(ApplicationSession):
 		
 		return "\n".join(currentEvents)
 
-	async def connectToEvent(self, eventNum):
+	async def connectToEvent(self, eventNum, ctx):
+		loop = asyncio.get_event_loop()
+
 		self.refreshEvents()
 
 		eventNum = int(eventNum) - 1
@@ -121,18 +123,24 @@ class Component(ApplicationSession):
 
 		print("Subscribing to " + event["uuid"])
 
+		async def sendToDiscord(ctx, message):
+			await ctx.send(message)
+
 		def onNewTrackMessage(i):
 			print("[TRACK EVENT]")
 			print(i)
-			self.msgQueue.put(str(i))
+			send = asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, str(i)), loop)
+			print(send.result())
 
 		def onNewCarMessage(i):
 			print("[CAR EVENT]")
 			pl = i["payload"]
 			carNum = next(iter(pl))
 			msg = pl[carNum][-1]
-			if msg[3] in ['sb', 'raceControl']:
-				self.msgQueue.put(self.formatCarMessage(msg))
+			print(msg)
+			# if msg[3] in ['sb', 'raceControl']:
+			send = asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
+			print(send.result())
 		
 		def onNewPitMessage(i):
 			print("[PIT EVENT]")
@@ -140,11 +148,11 @@ class Component(ApplicationSession):
 
 		print("start subs")
 		# await self.subscribe(onTimingEvent, "livetiming.service." + event["uuid"])
-		await self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
-		print("messages")
-		await self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
+		self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
 		print("car messages")
-		await self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
+		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
+		print("messages")
+		self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
 
 		print("subscribes complete")
 	

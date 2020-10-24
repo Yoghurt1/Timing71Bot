@@ -1,5 +1,6 @@
 from discord import Member, utils
 from discord.ext import commands
+from concurrent.futures import ThreadPoolExecutor
 import json
 import nest_asyncio
 import asyncio
@@ -18,7 +19,9 @@ class TimingCog(commands.Cog):
 	
 	async def messageWorker(self, ctx):
 		while True:
-			msg = "**" + self.bot.timingClient.getCurrentEvent() + "**\n" + self.bot.timingClient.msgQueue.get(False, 3)
+			recv = self.bot.timingClient.msgQueue.get(False)
+			print(recv)
+			msg = "**" + self.bot.timingClient.getCurrentEvent() + "**\n" + recv
 			await ctx.send(msg)
 			self.bot.timingClient.msgQueue.task_done()
 
@@ -36,9 +39,20 @@ class TimingCog(commands.Cog):
 			return await ctx.send("Invalid event.")
 
 		await ctx.send("Connecting to event number " + str(eventNum) + ".")
-		loop = asyncio.get_running_loop()
-		asyncio.run_coroutine_threadsafe(self.messageWorker(ctx), loop)
-		await self.bot.timingClient.connectToEvent(eventNum)
+
+		# def startMsgWorker():
+		# 	loop = asyncio.new_event_loop()
+		# 	asyncio.set_event_loop(loop)
+			
+		# 	ret = loop.run_until_complete(self.messageWorker(ctx))
+
+		# 	loop.close()
+		# 	return ret
+
+		# executor = ThreadPoolExecutor(2)
+		# executor.submit(startMsgWorker)
+
+		await self.bot.timingClient.connectToEvent(eventNum, ctx)
 
 	@bindEvent.error
 	async def bindEventError(self, ctx, error):
