@@ -129,8 +129,8 @@ class Component(ApplicationSession):
 		def onNewTrackMessage(i):
 			print("[TRACK EVENT]")
 			print(i)
-			send = asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, str(i)), loop)
-			print(send.result())
+			msg = i["payload"]["messages"][0]
+			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
 		def onNewCarMessage(i):
 			print("[CAR EVENT]")
@@ -139,8 +139,7 @@ class Component(ApplicationSession):
 			msg = pl[carNum][-1]
 			print(msg)
 			# if msg[3] in ['sb', 'raceControl']:
-			send = asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
-			print(send.result())
+			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
 			print("[PIT EVENT]")
@@ -161,6 +160,9 @@ class Component(ApplicationSession):
 			return msg[2]
 		else:
 			return (msg[1] + " - " + msg[2])
+
+	def formatTrackMessage(self, msg):
+		return (msg[1] + " - " + msg[2])
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().stop()
