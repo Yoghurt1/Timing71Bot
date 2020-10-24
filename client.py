@@ -43,6 +43,14 @@ class FlagStatus(Enum):
 	WHITE = 2
 	YELLOW = 4
 
+class FlagEmotes(Enum):
+	Yellow = "<:yellowflag:759534303817236550>"
+	Green = "<:greenflag:759534303821692988>"
+	BlackWhite = "<:blackwhiteflag:759447554047475723>"
+	Black = "<:blackflag:759534303595331615>"
+	SafetyCar = "<:safetycar:757207851893522472>"
+	Fcy = "<:fcy:759432420092805170>"
+
 def getRelay():
 	getRelays = requests.get("https://www.timing71.org/relays")
 	relays = getRelays.json()['args'][0]
@@ -143,14 +151,10 @@ class Component(ApplicationSession):
 		
 		def onNewPitMessage(i):
 			print("[PIT EVENT]")
-			print(i)
 
-		print("start subs")
 		# await self.subscribe(onTimingEvent, "livetiming.service." + event["uuid"])
 		self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
-		print("car messages")
 		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
-		print("messages")
 		self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
 
 		print("subscribes complete")
