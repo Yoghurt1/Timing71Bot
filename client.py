@@ -5,6 +5,7 @@ import datetime
 import asyncio
 import nest_asyncio
 import discordClient
+import queue
 from os import environ
 from enum import Enum
 from autobahn.wamp.types import SubscribeOptions
@@ -27,6 +28,21 @@ class MessageClass(Enum):
 	ANALYSIS_DATA_COMPRESSED = 9
 	RECORDING_LISTING = 10
 
+class FlagStatus(Enum):
+	CAUTION = 9
+	CHEQUERED = 3
+	CODE_60 = 6
+	CODE_60_ZONE = 12
+	FCY = 5
+	GREEN = 1
+	NONE = 0
+	RED = 10
+	SC = 8
+	SLOW_ZONE = 11
+	VSC = 7
+	WHITE = 2
+	YELLOW = 4
+
 def getRelay():
 	getRelays = requests.get("https://www.timing71.org/relays")
 	relays = getRelays.json()['args'][0]
@@ -36,6 +52,8 @@ TOKEN = environ["DISCORD_TOKEN"]
 
 class Component(ApplicationSession):
 	_events = []
+	_currentEvent = ""
+
 	async def onJoin(self, details):
 		def startClient():
 			loop = asyncio.new_event_loop()
@@ -51,6 +69,7 @@ class Component(ApplicationSession):
 		executor.submit(startClient)
 
 		self._events = await self.fetchEvents()
+		self.msgQueue = queue.Queue()
 
 	async def fetchEvents(self):
 		try:
@@ -61,8 +80,25 @@ class Component(ApplicationSession):
 		else:
 			return res
 
+	async def fetchRecordings(self):
+		try:
+			res = await self.call("livetiming.directory.listRecordings")
+		except Exception as e:
+			print("Failed to fetch recordings: ", e)
+			return None
+		else:
+			return res
+
 	def refreshEvents(self):
 		self._events = yield self.fetchEvents()
+		return
+	
+	def getCurrentEvent(self):
+		return self._currentEvent
+
+	def getRecordings(self):
+		res = yield self.fetchRecordings()
+		return res
 	
 	async def menu(self):
 		self.refreshEvents()
@@ -75,32 +111,48 @@ class Component(ApplicationSession):
 		
 		return "\n".join(currentEvents)
 
-	async def subscribeToEvent(self, eventNum):
+	async def connectToEvent(self, eventNum):
 		self.refreshEvents()
-		event = self._events[eventNum - 1]
-		print("Subscribing to " + event)
 
-		def onTimingEvent(i):
-			pl = i["payload"]
-			decompressed = LZString().decompressFromUTF16(pl)
-			res = json.loads(decompressed)
+		eventNum = int(eventNum) - 1
+		event = self._events[eventNum]
+
+		self._currentEvent = event["name"] + " - " + event["description"]
+
+		print("Subscribing to " + event["uuid"])
 
 		def onNewTrackMessage(i):
 			print("[TRACK EVENT]")
 			print(i)
-			return i
+			self.msgQueue.put(str(i))
 
 		def onNewCarMessage(i):
 			print("[CAR EVENT]")
 			pl = i["payload"]
 			carNum = next(iter(pl))
-			print(pl[carNum][-1])
-			return pl[carNum][-1]
+			msg = pl[carNum][-1]
+			if msg[3] in ['sb', 'raceControl']:
+				self.msgQueue.put(self.formatCarMessage(msg))
+		
+		def onNewPitMessage(i):
+			print("[PIT EVENT]")
+			print(i)
 
-		await self.subscribe(onTimingEvent, "livetiming.service." + event["uuid"])
+		print("start subs")
+		# await self.subscribe(onTimingEvent, "livetiming.service." + event["uuid"])
 		await self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
+		print("messages")
 		await self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
-		await self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
+		print("car messages")
+		await self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
+
+		print("subscribes complete")
+	
+	def formatCarMessage(self, msg):
+		if msg[1] == '':
+			return msg[2]
+		else:
+			return (msg[1] + " - " + msg[2])
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().stop()
