@@ -161,27 +161,33 @@ class Component(ApplicationSession):
 		if msg[1] == '':
 			return msg[2]
 		else:
+			cleanMsg = msg[1] + " - " + msg[2]
+
 			if any(x in msg[2].lower() for x in ["warning", "black / white"]):
-				return (FlagEmotes.BlackWhite.value + msg[1] + " - " + msg[2] + FlagEmotes.BlackWhite.value)
-			if "penalty" in msg[2].lower():
-				return (FlagEmotes.Black.value + msg[1] + " - " + msg[2] + FlagEmotes.Black.value)
+				return self.addFlag(cleanMsg, FlagEmotes.BlackWhite.value)
+			elif "penalty" in msg[2].lower():
+				return self.addFlag(cleanMsg, FlagEmotes.Black.value)
 			else:
-				return (msg[1] + " - " + msg[2])
+				return cleanMsg
 
 	def formatTrackMessage(self, msg):
-		if "full course yellow" in msg[2].lower():
-			return (FlagEmotes.Fcy.value + msg[1] + " - " + msg[2] + FlagEmotes.Fcy.value)
-		if "safety car" in msg[2].lower():
-			return (FlagEmotes.SafetyCar.value + msg[1] + " - " + msg[2] + FlagEmotes.SafetyCar.value)
-		if "green" in msg[2].lower():
-			return (FlagEmotes.Green.value + msg[1] + " - " + msg[2] + FlagEmotes.Green.value)
-		if any(x in msg[2].lower() for x in ["warning", "black / white"]):
-			return (FlagEmotes.BlackWhite.value + msg[1] + " - " + msg[2] + FlagEmotes.BlackWhite.value)
-		if "penalty" in msg[2].lower():
-			return (FlagEmotes.Black.value + msg[1] + " - " + msg[2] + FlagEmotes.Black.value)
+		cleanMsg = msg[1] + " - " + msg[2]
+
+		if "full course yellow" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Fcy.value)
+		elif "safety car" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.SafetyCar.value)
+		elif "green" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Green.value)
+		elif any(x in cleanMsg.lower() for x in ["warning", "black / white"]):
+			return self.addFlag(cleanMsg, FlagEmotes.BlackWhite.value)
+		elif "penalty" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Black.value)
 		else:
-			return (msg[1] + " - " + msg[2])
+			return cleanMsg
 		
+	def addFlag(self, msg, flag):
+		return (flag + " " + msg + " " + flag)
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().stop()
