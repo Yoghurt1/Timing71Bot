@@ -161,7 +161,12 @@ class Component(ApplicationSession):
 		if msg[1] == '':
 			return msg[2]
 		else:
-			return (msg[1] + " - " + msg[2])
+			if any(x in msg[2].lower() for x in ["warning", "black / white"]):
+				return (FlagEmotes.BlackWhite.value + msg[1] + " - " + msg[2] + FlagEmotes.BlackWhite.value)
+			if "penalty" in msg[2].lower():
+				return (FlagEmotes.Black.value + msg[1] + " - " + msg[2] + FlagEmotes.Black.value)
+			else:
+				return (msg[1] + " - " + msg[2])
 
 	def formatTrackMessage(self, msg):
 		if "full course yellow" in msg[2].lower():
