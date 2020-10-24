@@ -156,8 +156,6 @@ class Component(ApplicationSession):
 		self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
 		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
 		self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
-
-		print("subscribes complete")
 	
 	def formatCarMessage(self, msg):
 		if msg[1] == '':
@@ -166,7 +164,13 @@ class Component(ApplicationSession):
 			return (msg[1] + " - " + msg[2])
 
 	def formatTrackMessage(self, msg):
-		return (msg[1] + " - " + msg[2])
+		if "Full course yellow" in msg[2]:
+			return (FlagEmotes.Fcy + msg[1] + " - " + msg[2] + FlagEmotes.Fcy)
+		if "Safety car" in msg[2]:
+			return (FlagEmotes.SafetyCar + msg[1] + " - " + msg[2] + FlagEmotes.SafetyCar)
+		if "Green" in msg[2]:
+			return (FlagEmotes.Green + msg[1] + " - " + msg[2] + FlagEmotes.Green)
+		
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().stop()
