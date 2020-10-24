@@ -183,6 +183,8 @@ class Component(ApplicationSession):
 			return self.addFlag(cleanMsg, FlagEmotes.BlackWhite.value)
 		elif "penalty" in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.Black.value)
+		elif "yellow" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Fcy.Yellow)
 		else:
 			return cleanMsg
 		
