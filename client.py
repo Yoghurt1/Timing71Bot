@@ -50,6 +50,7 @@ class FlagEmotes(Enum):
 	Black = "<:blackflag:759534303595331615>"
 	SafetyCar = "<:safetycar:757207851893522472>"
 	Fcy = "<:fcy:759432420092805170>"
+	Retired = "<:F_:592914927396585472>"
 
 def getRelay():
 	getRelays = requests.get("https://www.timing71.org/relays")
@@ -60,7 +61,7 @@ TOKEN = environ["DISCORD_TOKEN"]
 
 class Component(ApplicationSession):
 	_events = []
-	_currentEvent = ""
+	_currentEvent = []
 
 	async def onJoin(self, details):
 		def startClient():
@@ -88,25 +89,12 @@ class Component(ApplicationSession):
 		else:
 			return res
 
-	async def fetchRecordings(self):
-		try:
-			res = await self.call("livetiming.directory.listRecordings")
-		except Exception as e:
-			print("Failed to fetch recordings: ", e)
-			return None
-		else:
-			return res
-
 	def refreshEvents(self):
 		self._events = yield self.fetchEvents()
 		return
 	
 	def getCurrentEvent(self):
 		return self._currentEvent
-
-	def getRecordings(self):
-		res = yield self.fetchRecordings()
-		return res
 	
 	async def menu(self):
 		self.refreshEvents()
@@ -127,7 +115,7 @@ class Component(ApplicationSession):
 		eventNum = int(eventNum) - 1
 		event = self._events[eventNum]
 
-		self._currentEvent = event["name"] + " - " + event["description"]
+		self._currentEvent = event
 
 		print("Subscribing to " + event["uuid"])
 
@@ -152,7 +140,6 @@ class Component(ApplicationSession):
 		def onNewPitMessage(i):
 			print("[PIT EVENT]")
 
-		# await self.subscribe(onTimingEvent, "livetiming.service." + event["uuid"])
 		self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
 		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
 		self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
@@ -163,10 +150,12 @@ class Component(ApplicationSession):
 		else:
 			cleanMsg = msg[1] + " - " + msg[2]
 
-			if any(x in msg[2].lower() for x in ["warning", "black / white"]):
+			if any(x in cleanMsg.lower() for x in ["warning", "black / white"]):
 				return self.addFlag(cleanMsg, FlagEmotes.BlackWhite.value)
-			elif "penalty" in msg[2].lower():
+			elif "penalty" in cleanMsg.lower():
 				return self.addFlag(cleanMsg, FlagEmotes.Black.value)
+			elif "retired" in cleanMsg.lower():
+				return self.addFlag(cleanMsg, FlagEmotes.Retired.value)
 			else:
 				return cleanMsg
 
@@ -185,11 +174,17 @@ class Component(ApplicationSession):
 			return self.addFlag(cleanMsg, FlagEmotes.Black.value)
 		elif "yellow" in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.Yellow.value)
+		elif "retired" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Retired.value)
 		else:
 			return cleanMsg
 		
 	def addFlag(self, msg, flag):
 		return (flag + " " + msg + " " + flag)
+
+	async def getCarDetails(self, carNum):
+		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
+		return res
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().stop()

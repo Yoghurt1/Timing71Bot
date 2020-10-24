@@ -47,8 +47,8 @@ class TimingCog(commands.Cog):
 		await ctx.send("Unsubscribed.")
 	
 	@commands.command()
-	async def recordings(self, ctx):
-		res = self.bot.timingClient.getRecordings()
+	async def car(self, ctx, carNum):
+		res = await self.bot.timingClient.getCarDetails()
 		print(res)
 		await ctx.send(str(res))
 
