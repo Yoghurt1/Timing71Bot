@@ -51,6 +51,9 @@ class FlagEmotes(Enum):
 	SafetyCar = "<:safetycar:757207851893522472>"
 	Fcy = "<:fcy:759432420092805170>"
 	Retired = "<:F_:592914927396585472>"
+	Red = "<:redflag:759534303842402314>"
+	Code60 = "<:code60:759432100558012436>"
+	Checkered = "🏁"
 
 def getRelay():
 	getRelays = requests.get("https://www.timing71.org/relays")
@@ -162,7 +165,7 @@ class Component(ApplicationSession):
 	def formatTrackMessage(self, msg):
 		cleanMsg = msg[1] + " - " + msg[2]
 
-		if "full course yellow" in cleanMsg.lower():
+		if any(x in cleanMsg.lower() for x in ["full course yellow", "virtual", "full course caution"]) in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.Fcy.value)
 		elif "safety car" in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.SafetyCar.value)
@@ -172,10 +175,16 @@ class Component(ApplicationSession):
 			return self.addFlag(cleanMsg, FlagEmotes.BlackWhite.value)
 		elif "penalty" in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.Black.value)
-		elif "yellow" in cleanMsg.lower():
+		elif any(x in cleanMsg.lower() for x in ["yellow", "slow zone"]) in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.Yellow.value)
 		elif "retired" in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.Retired.value)
+		elif "code 60" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Code60.value)
+		elif "red" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Red.value)
+		elif "chequered flag" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Checkered.value)
 		else:
 			return cleanMsg
 		
