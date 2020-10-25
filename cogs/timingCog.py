@@ -48,7 +48,7 @@ class TimingCog(commands.Cog):
 	
 	@commands.command()
 	async def car(self, ctx, carNum):
-		res = await self.bot.timingClient.getCarDetails()
+		res = await self.bot.timingClient.getCarDetails(carNum)
 		print(res)
 		await ctx.send(str(res))
 
