@@ -150,7 +150,10 @@ class Component(ApplicationSession):
 	
 	def formatCarMessage(self, msg):
 		if msg[1] == '':
-			return msg[2]
+			if "retired" in msg[2].lower():
+				return self.addFlag(msg[2], FlagEmotes.Retired.value)
+			else:
+				return msg[2]
 		else:
 			cleanMsg = msg[1] + " - " + msg[2]
 
