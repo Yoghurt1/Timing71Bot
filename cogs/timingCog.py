@@ -19,7 +19,7 @@ class TimingCog(commands.Cog):
 
 	@commands.command()
 	async def events(self, ctx):
-		res = await self.bot.timingClient.menu()
+		res = self.bot.timingClient.menu()
 		await ctx.send(res)
 
 	@commands.command()
@@ -43,8 +43,8 @@ class TimingCog(commands.Cog):
 	@commands.command()
 	@commands.has_any_role(_config["adminRole"], _config["modRole"])
 	async def unbind(self, ctx):
-		await self.bot.timingClient.unsubscribe()
-		await ctx.send("Unsubscribed.")
+		await ctx.send("Unbinding, I'll be available again shortly.")
+		self.bot.timingClient.unbind()
 	
 	@commands.command()
 	async def car(self, ctx, carNum):

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import requests
 import asyncio
 import json
@@ -6,13 +7,15 @@ import asyncio
 import nest_asyncio
 import discordClient
 import queue
-from os import environ
+import os
+import sys
 from enum import Enum
 from autobahn.wamp.types import SubscribeOptions
 from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
 from lzstring import LZString
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
+from helpers import msgFormat
 
 nest_asyncio.apply()
 
@@ -43,25 +46,12 @@ class FlagStatus(Enum):
 	WHITE = 2
 	YELLOW = 4
 
-class FlagEmotes(Enum):
-	Yellow = "<:yellowflag:759534303817236550>"
-	Green = "<:greenflag:759534303821692988>"
-	BlackWhite = "<:blackwhiteflag:759447554047475723>"
-	Black = "<:blackflag:759534303595331615>"
-	SafetyCar = "<:safetycar:757207851893522472>"
-	Fcy = "<:fcy:759432420092805170>"
-	Retired = "<:F_:592914927396585472>"
-	Red = "<:redflag:759534303842402314>"
-	Code60 = "<:code60:759432100558012436>"
-	Checkered = "🏁"
-	Investigation = "🔍"
-
 def getRelay():
 	getRelays = requests.get("https://www.timing71.org/relays")
 	relays = getRelays.json()['args'][0]
 	return list(relays.keys())[0]
 
-TOKEN = environ["DISCORD_TOKEN"]
+TOKEN = os.environ["DISCORD_TOKEN"]
 
 class Component(ApplicationSession):
 	_events = []
@@ -92,16 +82,17 @@ class Component(ApplicationSession):
 			return None
 		else:
 			return res
-
-	def refreshEvents(self):
-		self._events = yield self.fetchEvents()
-		return
 	
 	def getCurrentEvent(self):
 		return self._currentEvent
+
+	async def refreshEvents(self):
+		self._events = await self.fetchEvents()
 	
-	async def menu(self):
-		self.refreshEvents()
+	def menu(self):
+		loop = asyncio.new_event_loop()
+		asyncio.run_coroutine_threadsafe(self.refreshEvents(), loop)
+		
 		currentEvents = []
 		if self._events == []:
 			return "No events currently ongoing."
@@ -113,8 +104,6 @@ class Component(ApplicationSession):
 
 	async def connectToEvent(self, eventNum, ctx):
 		loop = asyncio.get_event_loop()
-
-		self.refreshEvents()
 
 		eventNum = int(eventNum) - 1
 		event = self._events[eventNum]
@@ -150,58 +139,23 @@ class Component(ApplicationSession):
 	
 	def formatCarMessage(self, msg):
 		if msg[1] == '':
-			if "retired" in msg[2].lower():
-				return self.addFlag(msg[2], FlagEmotes.Retired.value)
-			else:
-				return msg[2]
+			return msgFormat.formatWithFlags(msg[2], self._currentEvent)
 		else:
 			cleanMsg = msg[1] + " - " + msg[2]
 
-			if any(x in cleanMsg.lower() for x in ["warning", "black / white"]):
-				return self.addFlag(cleanMsg, FlagEmotes.BlackWhite.value)
-			elif "penalty" in cleanMsg.lower():
-				return self.addFlag(cleanMsg, FlagEmotes.Black.value)
-			elif "retired" in cleanMsg.lower():
-				return self.addFlag(cleanMsg, FlagEmotes.Retired.value)
-			elif "under investigation" in cleanMsg.lower():
-				return self.addFlag(cleanMsg, FlagEmotes.Investigation.value)
-			else:
-				return cleanMsg
+			return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
 
 	def formatTrackMessage(self, msg):
 		cleanMsg = msg[1] + " - " + msg[2]
 
-		if any(x in cleanMsg.lower() for x in ["full course yellow", "virtual", "full course caution"]):
-			return self.addFlag(cleanMsg, FlagEmotes.Fcy.value)
-		elif "safety car" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.SafetyCar.value)
-		elif "green" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.Green.value)
-		elif any(x in cleanMsg.lower() for x in ["warning", "black / white"]):
-			return self.addFlag(cleanMsg, FlagEmotes.BlackWhite.value)
-		elif "penalty" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.Black.value)
-		elif any(x in cleanMsg.lower() for x in ["yellow", "slow zone"]):
-			return self.addFlag(cleanMsg, FlagEmotes.Yellow.value)
-		elif "retired" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.Retired.value)
-		elif "code 60" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.Code60.value)
-		elif "red" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.Red.value)
-		elif "chequered flag" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.Checkered.value)
-		elif "under investigation" in cleanMsg.lower():
-			return self.addFlag(cleanMsg, FlagEmotes.Investigation.value)
-		else:
-			return cleanMsg
+		return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
 		
-	def addFlag(self, msg, flag):
-		return (flag + " " + msg + " " + flag)
-
 	async def getCarDetails(self, carNum):
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
 		return res
+
+	def unbind(self):
+		os.execv(__file__, sys.argv)
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().stop()
