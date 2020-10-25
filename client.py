@@ -128,8 +128,8 @@ class Component(ApplicationSession):
 
 		def onNewTrackMessage(i):
 			print("[TRACK EVENT]")
-			print(i)
 			msg = i["payload"]["messages"][0]
+			print(msg)
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
 		def onNewCarMessage(i):
@@ -188,6 +188,8 @@ class Component(ApplicationSession):
 			return self.addFlag(cleanMsg, FlagEmotes.Red.value)
 		elif "chequered flag" in cleanMsg.lower():
 			return self.addFlag(cleanMsg, FlagEmotes.Checkered.value)
+		elif "under investigation" in cleanMsg.lower():
+			return self.addFlag(cleanMsg, FlagEmotes.Investigation.value)
 		else:
 			return cleanMsg
 		
