@@ -70,5 +70,9 @@ class TimingCog(commands.Cog):
 	async def bulg(self, ctx):
 		await ctx.send("🛌")
 
+	@commands.command()
+	async def broc(self, ctx):
+		await ctx.send("https://media.discordapp.net/attachments/731131954728009760/771875090768855050/unknown.png")
+
 def setup(bot):
 	bot.add_cog(TimingCog(bot))
