@@ -119,6 +119,10 @@ class Component(ApplicationSession):
 			print("[TRACK EVENT]")
 			msg = i["payload"]["messages"][0]
 			print(msg)
+			if "Chequered flag" in msg[2]:
+				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage("Event finished, unbinding.")), loop)
+				self.unbind()
+
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
 		def onNewCarMessage(i):
@@ -134,7 +138,7 @@ class Component(ApplicationSession):
 			print("[PIT EVENT]")
 
 		self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
-		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages", options=SubscribeOptions(get_retained=True))
+		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages")
 		self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
 	
 	def formatCarMessage(self, msg):
