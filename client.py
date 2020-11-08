@@ -9,6 +9,7 @@ import discordClient
 import queue
 import os
 import sys
+import time
 from enum import Enum
 from autobahn.wamp.types import SubscribeOptions
 from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
@@ -120,6 +121,8 @@ class Component(ApplicationSession):
 			msg = i["payload"]["messages"][0]
 			print(msg)
 			if "Chequered flag" in msg[2]:
+				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
+				time.sleep(2)
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage("Event finished, unbinding.")), loop)
 				self.unbind()
 
