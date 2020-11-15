@@ -25,7 +25,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Fcy.value, currentEvent)
     elif "safety car" in msg.lower():
         return addFlag(msg, FlagEmotes.SafetyCar.value, currentEvent)
-    elif "green" in msg.lower():
+    elif "green flag" in msg.lower():
         return addFlag(msg, FlagEmotes.Green.value, currentEvent)
     elif any(x in msg.lower() for x in ["warning", "black / white"]):
         return addFlag(msg, FlagEmotes.BlackWhite.value, currentEvent)
@@ -39,7 +39,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Code60.value, currentEvent)
     elif "chequered flag" in msg.lower():
         return addFlag(msg, FlagEmotes.Checkered.value, currentEvent)
-    elif "red" in msg.lower():
+    elif "red flag" in msg.lower():
         return addFlag(msg, FlagEmotes.Red.value, currentEvent)
     elif "under investigation" in msg.lower():
         return addFlag(msg, FlagEmotes.Investigation.value, currentEvent)
