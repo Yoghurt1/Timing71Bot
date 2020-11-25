@@ -134,7 +134,7 @@ class Component(ApplicationSession):
 			carNum = next(iter(pl))
 			msg = pl[carNum][-1]
 			print(msg)
-			if msg[3] not in ['pb']:
+			if msg[3] not in ['pb'] or "driver change" in msg[2].lower():
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
