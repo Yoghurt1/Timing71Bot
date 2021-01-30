@@ -25,11 +25,6 @@ class TimingCog(commands.Cog):
 	@commands.command()
 	@commands.has_any_role(_config["adminRole"], _config["modRole"])
 	async def bindEvent(self, ctx, eventNum):
-		try:
-			int(eventNum)
-		except:
-			return await ctx.send("Invalid event.")
-
 		await ctx.send("Connecting to event number " + str(eventNum) + ".")
 		await self.bot.timingClient.connectToEvent(eventNum, ctx)
 

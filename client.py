@@ -106,12 +106,16 @@ class Component(ApplicationSession):
 	async def connectToEvent(self, eventNum, ctx):
 		loop = asyncio.get_event_loop()
 
-		eventNum = int(eventNum) - 1
-		event = self._events[eventNum]
+		if len(eventNum) == 1:
+			eventNum = int(eventNum) - 1
+			event = self._events[eventNum]
 
-		self._currentEvent = event
+			self._currentEvent = event
 
-		print("Subscribing to " + event["uuid"])
+			print("Subscribing to " + event["uuid"])
+		else:
+			self._currentEvent = {"uuid": eventNum, "name": "Secret event", "description": "Shhhh"}
+			event = self._currentEvent
 
 		async def sendToDiscord(ctx, message):
 			await ctx.send(message)
