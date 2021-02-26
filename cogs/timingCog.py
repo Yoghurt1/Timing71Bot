@@ -1,6 +1,7 @@
 from discord import Member, utils
 from discord.ext import commands
 from concurrent.futures import ThreadPoolExecutor
+from discord_config import Settings
 import json
 import nest_asyncio
 import asyncio
@@ -8,22 +9,24 @@ import asyncio
 nest_asyncio.apply()
 
 class TimingCog(commands.Cog):
-	_config = json.load(open("config.json", "r"))
+	_config = Settings(defaults={
+			"adminRole": "Admin",
+			"modRole": "Tiddy Boiz",
+			"delay": 0
+		},
+		filename="config"
+	)
 
 	def __init__(self, bot, config=None):
 		self.bot = bot
 
-	def updateConfig(self, config):
-		json.dump(config, open("config.json", "w"))
-		self._config = config
-
 	@commands.command()
 	async def events(self, ctx):
-		res = self.bot.timingClient.menu()
+		res = await self.bot.timingClient.events()
 		await ctx.send(res)
 
 	@commands.command()
-	@commands.has_any_role(_config["adminRole"], _config["modRole"])
+	@commands.has_any_role(_config.adminRole, _config.modRole)
 	async def bindEvent(self, ctx, eventNum):
 		await ctx.send("Connecting to event number " + str(eventNum) + ".")
 		await self.bot.timingClient.connectToEvent(eventNum, ctx)
@@ -36,30 +39,33 @@ class TimingCog(commands.Cog):
 			return await ctx.send("You aren't cool enough to use this command.")
 
 	@commands.command()
-	@commands.has_any_role(_config["adminRole"], _config["modRole"])
+	@commands.has_any_role(_config.adminRole, _config.modRole)
 	async def unbind(self, ctx):
 		await ctx.send("Unbinding, I'll be available again shortly.")
 		self.bot.timingClient.unbind()
 	
 	@commands.command()
 	async def car(self, ctx, carNum):
-		res = await self.bot.timingClient.getCarDetails(carNum)
-		print(res)
-		await ctx.send(str(res))
+		await self.bot.timingClient.getCarDetails(carNum, ctx)
 
 	@commands.command()
 	@commands.is_owner()
 	async def setAdminRole(self, ctx, roleName):
-		self._config["adminRole"] = roleName
-		self.updateConfig(self._config)
+		self._config.set('adminRole', roleName)
+		self._config.save()
 		await ctx.send("Set admin role to " + roleName)
 
 	@commands.command()
 	@commands.is_owner()
 	async def setModRole(self, ctx, roleName):
-		self._config["modRole"] = roleName
-		self.updateConfig(self._config)
+		self._config.set("modRole", roleName)
+		self._config.save()
 		await ctx.send("Set mod role to " + roleName)
+
+	@commands.command()
+	@commands.has_any_role(_config.adminRole, _config.modRole)
+	async def setDelay(self, ctx, delay):
+		self._config.set('delay', delay)
 
 	@commands.command()
 	async def bulg(self, ctx):

@@ -17,6 +17,7 @@ from lzstring import LZString
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 from helpers import msgFormat
+from discord_config import Settings
 
 nest_asyncio.apply()
 
@@ -57,6 +58,14 @@ TOKEN = os.environ["DISCORD_TOKEN"]
 class Component(ApplicationSession):
 	_events = []
 	_currentEvent = []
+	_status = ""
+	_config = Settings(defaults={
+			"adminRole": "Admin",
+			"modRole": "Tiddy Boiz",
+			"delay": 0
+		},
+		filename="config"
+	)
 
 	async def onJoin(self, details):
 		def startClient():
@@ -130,6 +139,7 @@ class Component(ApplicationSession):
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage("Event finished, unbinding.")), loop)
 				self.unbind()
 
+			asyncio.sleep(self._config.delay)
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
 		def onNewCarMessage(i):
@@ -139,6 +149,7 @@ class Component(ApplicationSession):
 			msg = pl[carNum][-1]
 			print(msg)
 			if msg[3] not in ['pb', None]:
+				asyncio.sleep(self._config.delay)
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
@@ -160,10 +171,20 @@ class Component(ApplicationSession):
 		cleanMsg = msg[1] + " - " + msg[2]
 
 		return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
-		
-	async def getCarDetails(self, carNum):
+
+	async def setState(self):
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
+		print(res)
 		return res
+		
+	async def getCarDetails(self, carNum, ctx):
+		async def sendToDiscord(ctx, message):
+			await ctx.send(message)
+
+		loop = asyncio.get_event_loop()
+
+		res = asyncio.run_coroutine_threadsafe(self.setState(), loop).result()
+		asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, res), loop)
 
 	def unbind(self):
 		os.execv(__file__, sys.argv)
