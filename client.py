@@ -10,6 +10,7 @@ import queue
 import os
 import sys
 import time
+import logging
 from enum import Enum
 from autobahn.wamp.types import SubscribeOptions
 from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
@@ -88,7 +89,7 @@ class Component(ApplicationSession):
 		try:
 			res = await self.call("livetiming.directory.listServices")
 		except Exception as e:
-			print("Failed to fetch events: ", e)
+			logging.error("Failed to fetch events: {0}".format(e))
 			return None
 		else:
 			return res
@@ -121,7 +122,7 @@ class Component(ApplicationSession):
 
 			self._currentEvent = event
 
-			print("Subscribing to " + event["uuid"])
+			logging.info("Subscribing to " + event["uuid"])
 		else:
 			self._currentEvent = {"uuid": eventNum, "name": "Secret event", "description": "Shhhh"}
 			event = self._currentEvent
@@ -131,28 +132,30 @@ class Component(ApplicationSession):
 			await ctx.send(message)
 
 		def onNewTrackMessage(i):
-			print("[TRACK EVENT]")
+			logging.info("[TRACK EVENT]")
+			
 			msg = i["payload"]["messages"][0]
-			print(msg)
-			if "Chequered flag" in msg[2]:
-				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
-				time.sleep(2)
-				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage("Event finished, unbinding.")), loop)
-				self.unbind()
+			logging.info(msg)
 
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
+			if "Chequered flag" in msg[2]:
+				self._config.set("delay", "0")
+
 		def onNewCarMessage(i):
-			print("[CAR EVENT]")
-			pl = i["payload"]
-			carNum = next(iter(pl))
-			msg = pl[carNum][-1]
-			print(msg)
+			logging.info("[CAR EVENT]")
+			
+			payload = i["payload"]
+			carNum = next(iter(payload))
+			msg = payload[carNum][-1]
+
+			logging.info(msg)
+
 			if msg[3] not in ['pb', None]:
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
-			print("[PIT EVENT]")
+			logging.info("[PIT EVENT]")
 
 		self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
 		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages")
@@ -173,7 +176,7 @@ class Component(ApplicationSession):
 
 	async def setState(self):
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
-		print(res)
+		logging.debug(res)
 		return res
 		
 	async def getCarDetails(self, carNum, ctx):

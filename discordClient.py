@@ -1,11 +1,12 @@
 import json
+import logging
 from discord import Member
 from discord.ext import commands
 from cogs.timingCog import TimingCog
 
 class DiscordClient(commands.Bot):
 	async def on_ready(self):
-		print('We have logged in as {0.user}'.format(self))
+		logging.info('We have logged in as {0.user}'.format(self))
 
 	def __init__(self, timingClient):
 		super().__init__(command_prefix=".")
