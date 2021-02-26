@@ -14,7 +14,7 @@ class TimingCog(commands.Cog):
 			"modRole": "Tiddy Boiz",
 			"delay": 0
 		},
-		filename="config"
+		filename="config.json"
 	)
 
 	def __init__(self, bot, config=None):
@@ -66,6 +66,8 @@ class TimingCog(commands.Cog):
 	@commands.has_any_role(_config.adminRole, _config.modRole)
 	async def setDelay(self, ctx, delay):
 		self._config.set('delay', delay)
+		self._config.save()
+		await ctx.send("Set delay to " + delay)
 
 	@commands.command()
 	async def bulg(self, ctx):

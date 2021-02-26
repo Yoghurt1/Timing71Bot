@@ -64,7 +64,7 @@ class Component(ApplicationSession):
 			"modRole": "Tiddy Boiz",
 			"delay": 0
 		},
-		filename="config"
+		filename="config.json",
 	)
 
 	async def onJoin(self, details):
@@ -127,6 +127,7 @@ class Component(ApplicationSession):
 			event = self._currentEvent
 
 		async def sendToDiscord(ctx, message):
+			await asyncio.sleep(int(self._config.delay))
 			await ctx.send(message)
 
 		def onNewTrackMessage(i):
@@ -139,7 +140,6 @@ class Component(ApplicationSession):
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage("Event finished, unbinding.")), loop)
 				self.unbind()
 
-			asyncio.sleep(self._config.delay)
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
 		def onNewCarMessage(i):
@@ -149,7 +149,6 @@ class Component(ApplicationSession):
 			msg = pl[carNum][-1]
 			print(msg)
 			if msg[3] not in ['pb', None]:
-				asyncio.sleep(self._config.delay)
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):

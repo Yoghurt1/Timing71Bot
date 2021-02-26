@@ -1,5 +1,6 @@
 {
-    "adminRole": "Admin",
-    "modRole": "Tiddy Boiz",
-    "delay": 0
+  "adminRole": "Admin",
+  "debug": false,
+  "delay": "50",
+  "modRole": "Tiddy Boiz"
 }
