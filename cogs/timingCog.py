@@ -19,10 +19,11 @@ class TimingCog(commands.Cog):
 
 	def __init__(self, bot, config=None):
 		self.bot = bot
+		self.loop = asyncio.get_event_loop()
 
 	@commands.command()
 	async def events(self, ctx):
-		res = await self.bot.timingClient.events()
+		res = await self.bot.timingClient.events(self.loop)
 		await ctx.send(res)
 
 	@commands.command()
@@ -42,6 +43,7 @@ class TimingCog(commands.Cog):
 	@commands.has_any_role(_config.adminRole, _config.modRole)
 	async def unbind(self, ctx):
 		await ctx.send("Unbinding, I'll be available again shortly.")
+		self._config.set("delay", 0)
 		self.bot.timingClient.unbind()
 	
 	@commands.command()

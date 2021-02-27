@@ -18,6 +18,7 @@ from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 from helpers import msgFormat
 from discord_config import Settings
+from functools import partial
 
 nest_asyncio.apply()
 
@@ -66,6 +67,8 @@ class Component(ApplicationSession):
 		},
 		filename="config.json",
 	)
+	_executor = ThreadPoolExecutor(2)
+	_state = ""
 
 	async def onJoin(self, details):
 		def startClient():
@@ -78,10 +81,9 @@ class Component(ApplicationSession):
 			loop.close()
 			return ret
 
-		executor = ThreadPoolExecutor(2)
-		executor.submit(startClient)
+		self._executor.submit(startClient)
 
-		self._events = await self.fetchEvents()
+		await self.fetchEvents()
 
 	async def fetchEvents(self):
 		try:
@@ -90,11 +92,12 @@ class Component(ApplicationSession):
 			logging.error("Failed to fetch events: {0}".format(e))
 			return None
 		else:
-			return res
+			logging.info("Updating events: {0}".format(res))
+			self._events = res
 	
-	async def events(self):
-		self._events = await self.fetchEvents()
-		
+	async def events(self, loop):
+		asyncio.run_coroutine_threadsafe(self.fetchEvents(), loop)
+
 		currentEvents = []
 		if self._events == []:
 			return "No events currently ongoing."
