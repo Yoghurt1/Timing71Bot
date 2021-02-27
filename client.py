@@ -6,7 +6,6 @@ import datetime
 import asyncio
 import nest_asyncio
 import discordClient
-import queue
 import os
 import sys
 import time
@@ -83,7 +82,6 @@ class Component(ApplicationSession):
 		executor.submit(startClient)
 
 		self._events = await self.fetchEvents()
-		self.msgQueue = queue.Queue()
 
 	async def fetchEvents(self):
 		try:
@@ -94,15 +92,8 @@ class Component(ApplicationSession):
 		else:
 			return res
 	
-	def getCurrentEvent(self):
-		return self._currentEvent
-
-	async def refreshEvents(self):
+	async def events(self):
 		self._events = await self.fetchEvents()
-	
-	def menu(self):
-		loop = asyncio.new_event_loop()
-		asyncio.run_coroutine_threadsafe(self.refreshEvents(), loop)
 		
 		currentEvents = []
 		if self._events == []:
@@ -173,20 +164,14 @@ class Component(ApplicationSession):
 		cleanMsg = msg[1] + " - " + msg[2]
 
 		return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
-
-	async def setState(self):
-		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
-		logging.debug(res)
-		return res
 		
 	async def getCarDetails(self, carNum, ctx):
 		async def sendToDiscord(ctx, message):
 			await ctx.send(message)
 
-		loop = asyncio.get_event_loop()
-
-		res = asyncio.run_coroutine_threadsafe(self.setState(), loop).result()
-		asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, res), loop)
+		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
+		logging.debug(res)
+		return res
 
 	def unbind(self):
 		os.execv(__file__, sys.argv)
