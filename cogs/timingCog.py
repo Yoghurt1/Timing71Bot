@@ -36,8 +36,8 @@ class TimingCog(commands.Cog):
 	async def bindEventError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
 			return await ctx.send("You haven't provided an event number, genius.")
-		elif isinstance(error, commands.MissingAnyRole):
-			return await ctx.send("You aren't cool enough to use this command.")
+		else:
+			return await ctx.send("Unknown error occured.")
 
 	@commands.command()
 	@commands.has_any_role(_config.adminRole, _config.modRole)

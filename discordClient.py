@@ -13,3 +13,9 @@ class DiscordClient(commands.Bot):
 
 		self.timingClient = timingClient
 		self.load_extension("cogs.timingCog")
+
+	async def on_command_error(self, ctx, exception):
+		logging.error(exception)
+
+		if isinstance(exception, commands.MissingAnyRole):
+			await ctx.send("You aren't cool enough to use this command.")
