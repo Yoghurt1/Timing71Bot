@@ -1,5 +1,7 @@
+from discord import DMChannel
 from discord.ext import commands
 from discord_config import Settings
+import logging
 
 class TimingCog(commands.Cog):
 	_config = Settings(defaults={
@@ -39,9 +41,12 @@ class TimingCog(commands.Cog):
 		self.bot.timingClient.unbind()
 	
 	@commands.command()
-	@commands.cooldown(1, 20)
 	async def car(self, ctx, carNum, spec=None):
-		await self.bot.timingClient.getCarDetails(ctx, carNum, spec)
+		if isinstance(ctx.channel, DMChannel) or ctx.channel.name == "bot_log":
+			logging.info(".car command called by {0} with args: {1}, {2}".format(ctx.author, carNum, spec))
+			await self.bot.timingClient.getCarDetails(ctx, carNum, spec)
+		else:
+			logging.error(".car command called outside PMs or #bot_log by {0}".format(ctx.author))
 
 def setup(bot):
 	bot.add_cog(TimingCog(bot))
