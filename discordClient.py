@@ -17,3 +17,7 @@ class DiscordClient(commands.Bot):
 
 		if isinstance(exception, commands.MissingAnyRole):
 			await ctx.send("You aren't cool enough to use this command.")
+		elif isinstance(exception, commands.CommandOnCooldown):
+			await ctx.send("Have some patience, child. {0}.".format(exception))
+		elif isinstance(exception, commands.CommandInvokeError):
+			await ctx.send("Unknown error occurred. Good job, idiot.")

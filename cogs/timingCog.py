@@ -39,8 +39,9 @@ class TimingCog(commands.Cog):
 		self.bot.timingClient.unbind()
 	
 	@commands.command()
-	async def car(self, ctx, carNum):
-		await self.bot.timingClient.getCarDetails(carNum, ctx)
+	@commands.cooldown(1, 20)
+	async def car(self, ctx, carNum, spec=None):
+		await self.bot.timingClient.getCarDetails(ctx, carNum, spec)
 
 def setup(bot):
 	bot.add_cog(TimingCog(bot))

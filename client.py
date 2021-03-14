@@ -128,9 +128,9 @@ class Component(ApplicationSession):
 
 		return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
 		
-	async def getCarDetails(self, carNum, ctx):
+	async def getCarDetails(self, ctx, carNum, spec=None):
 		async def sendToDiscord(ctx, message):
-			await ctx.send(msgFormat.formatCarInfo(message, self._currentEvent))
+			await ctx.send(msgFormat.formatCarInfo(message, spec, self._currentEvent))
 
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
 		for car in res["cars"]:
