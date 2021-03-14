@@ -1,8 +1,5 @@
-import json
 import logging
-from discord import Member
 from discord.ext import commands
-from cogs.timingCog import TimingCog
 
 class DiscordClient(commands.Bot):
 	async def on_ready(self):
@@ -13,6 +10,7 @@ class DiscordClient(commands.Bot):
 
 		self.timingClient = timingClient
 		self.load_extension("cogs.timingCog")
+		self.load_extension("cogs.managementCog")
 
 	async def on_command_error(self, ctx, exception):
 		logging.error("Command failed with {0} error: {1}".format(type(exception), exception))

@@ -1,12 +1,5 @@
-from discord import Member, utils
 from discord.ext import commands
-from concurrent.futures import ThreadPoolExecutor
 from discord_config import Settings
-import json
-import nest_asyncio
-import asyncio
-
-nest_asyncio.apply()
 
 class TimingCog(commands.Cog):
 	_config = Settings(defaults={
@@ -19,11 +12,10 @@ class TimingCog(commands.Cog):
 
 	def __init__(self, bot, config=None):
 		self.bot = bot
-		self.loop = asyncio.get_event_loop()
 
 	@commands.command()
 	async def events(self, ctx):
-		res = await self.bot.timingClient.events(self.loop)
+		res = await self.bot.timingClient.events()
 		await ctx.send(res)
 
 	@commands.command()
@@ -48,41 +40,7 @@ class TimingCog(commands.Cog):
 	
 	@commands.command()
 	async def car(self, ctx, carNum):
-		asyncio.run_coroutine_threadsafe(self.bot.timingClient.getCarDetails(carNum, ctx), self.loop)
-
-	@commands.command()
-	@commands.is_owner()
-	async def setAdminRole(self, ctx, roleName):
-		self._config.set('adminRole', roleName)
-		self._config.save()
-		await ctx.send("Set admin role to " + roleName)
-
-	@commands.command()
-	@commands.is_owner()
-	async def setModRole(self, ctx, roleName):
-		self._config.set("modRole", roleName)
-		self._config.save()
-		await ctx.send("Set mod role to " + roleName)
-
-	@commands.command()
-	@commands.has_any_role(_config.adminRole, _config.modRole)
-	async def setDelay(self, ctx, delay):
-		self._config.set('delay', delay)
-		self._config.save()
-		await ctx.send("Set delay to " + delay)
-
-	@commands.command()
-	async def bulg(self, ctx):
-		await ctx.send("🛌")
-
-	@commands.command()
-	async def broc(self, ctx):
-		await ctx.send("https://media.discordapp.net/attachments/731131954728009760/771875090768855050/unknown.png")
-
-	@commands.command()
-	@commands.has_any_role(_config.adminRole, _config.modRole)
-	async def channel(self, ctx):
-		await ctx.send("https://media.discordapp.net/attachments/293550896950935552/804399368638824479/Wrong_channel.jpg?width=744&height=380")
+		await self.bot.timingClient.getCarDetails(carNum, ctx)
 
 def setup(bot):
 	bot.add_cog(TimingCog(bot))

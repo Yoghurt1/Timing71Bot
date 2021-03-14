@@ -1,16 +1,17 @@
 #!/usr/bin/env python
+import nest_asyncio
+nest_asyncio.apply()
+
 import requests
 import asyncio
 import json
 import datetime
 import asyncio
-import nest_asyncio
 import discordClient
 import os
 import sys
 import time
 import logging
-from enum import Enum
 from autobahn.wamp.types import SubscribeOptions
 from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
 from lzstring import LZString
@@ -19,35 +20,6 @@ from concurrent.futures import ThreadPoolExecutor
 from helpers import msgFormat
 from discord_config import Settings
 from functools import partial
-
-nest_asyncio.apply()
-
-class MessageClass(Enum):
-	INITIALISE_DIRECTORY = 1
-	SERVICE_REGISTRATION = 2
-	SERVICE_DEREGISTRATION = 3
-	SERVICE_DATA = 4
-	DIRECTORY_LISTING = 5
-	SCHEDULE_LISTING = 6
-	ANALYSIS_DATA = 7
-	SERVICE_DATA_COMPRESSED = 8
-	ANALYSIS_DATA_COMPRESSED = 9
-	RECORDING_LISTING = 10
-
-class FlagStatus(Enum):
-	CAUTION = 9
-	CHEQUERED = 3
-	CODE_60 = 6
-	CODE_60_ZONE = 12
-	FCY = 5
-	GREEN = 1
-	NONE = 0
-	RED = 10
-	SC = 8
-	SLOW_ZONE = 11
-	VSC = 7
-	WHITE = 2
-	YELLOW = 4
 
 def getRelay():
 	getRelays = requests.get("https://www.timing71.org/relays")
@@ -68,36 +40,25 @@ class Component(ApplicationSession):
 		filename="config.json",
 	)
 	_executor = ThreadPoolExecutor(2)
-	_state = ""
+	_manifest = ""
 
 	async def onJoin(self, details):
-		def startClient():
-			loop = asyncio.new_event_loop()
-			asyncio.set_event_loop(loop)
-			
-			client = discordClient.DiscordClient(self)
-			
-			ret = loop.run_until_complete(client.start(TOKEN))
-			loop.close()
-			return ret
-
-		self._executor.submit(startClient)
-
 		await self.fetchEvents()
 
-	async def fetchEvents(self):
-		try:
-			res = await self.call("livetiming.directory.listServices")
-		except Exception as e:
-			logging.error("Failed to fetch events: {0}".format(e))
-			return None
-		else:
-			logging.info("Updating events: {0}".format(res))
-			self._events = res
-	
-	async def events(self, loop):
-		asyncio.run_coroutine_threadsafe(self.fetchEvents(), loop)
+		def startClient():
+			client = discordClient.DiscordClient(self)
+			client.run(TOKEN)
 
+		loop = asyncio.get_event_loop()
+		loop.run_in_executor(self._executor, startClient())
+
+	async def fetchEvents(self):
+		def onEventsFetched(i):
+			self._events = i["payload"]
+
+		self.subscribe(onEventsFetched, "livetiming.directory", options=SubscribeOptions(get_retained=True))
+	
+	async def events(self):
 		currentEvents = []
 		if self._events == []:
 			return "No events currently ongoing."
@@ -118,8 +79,7 @@ class Component(ApplicationSession):
 
 			logging.info("Subscribing to " + event["uuid"])
 		else:
-			self._currentEvent = {"uuid": eventNum, "name": "Secret event", "description": "Shhhh"}
-			event = self._currentEvent
+			return None
 
 		async def sendToDiscord(ctx, message):
 			await asyncio.sleep(int(self._config.delay))
@@ -170,11 +130,24 @@ class Component(ApplicationSession):
 		
 	async def getCarDetails(self, carNum, ctx):
 		async def sendToDiscord(ctx, message):
-			await ctx.send(message)
+			await ctx.send(msgFormat.formatCarInfo(message, self._currentEvent))
 
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
-		logging.debug(res)
-		return res
+		for car in res["cars"]:
+			if car[0] == str(carNum):
+				specList = []
+				for col in self._currentEvent["colSpec"]:
+					try:
+						specList.append(col[2])
+					except IndexError:
+						specList.append(col[0])
+
+				carList = [i for i in car]
+
+				carDict = dict(zip(specList, carList))
+				return await sendToDiscord(ctx, carDict)
+		
+		return await sendToDiscord(ctx, "Couldn't find a car with that number.")
 
 	def unbind(self):
 		os.execv(__file__, sys.argv)

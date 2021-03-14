@@ -1,4 +1,5 @@
 from enum import Enum
+import datetime
 
 class FlagEmotes(Enum):
 	Yellow = "<:yellowflag:759534303817236550>"
@@ -45,4 +46,22 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Investigation.value, currentEvent)
     else:
         return ("**" + currentEvent["name"] + " - " + currentEvent["description"] + "**\n" + msg)
+
+def formatCarInfo(carDict, currentEvent):
+    res = ""
+    for key, value in carDict.items():
+        if isinstance(value, list):
+            try:
+                time = datetime.datetime.utcfromtimestamp(float(value[0]))
+                returnValue = datetime.datetime.strftime(time, "%M:%S.%f")[:-3]
+            except ValueError:
+                returnValue = value[0]
+        elif value == "":
+            returnValue = "N/A"
+        else:
+            returnValue = value
+        
+        res = res + "{0}: {1}\n".format(key, returnValue)
+    
+    return addEvent(res, currentEvent)
 		
