@@ -38,7 +38,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Retired.value, currentEvent)
     elif "code 60" in msg.lower():
         return addFlag(msg, FlagEmotes.Code60.value, currentEvent)
-    elif "chequered flag" in msg.lower():
+    elif any(x in msg.lower() for x in ["chequered flag", "checkered flag"]:
         return addFlag(msg, FlagEmotes.Checkered.value, currentEvent)
     elif "red flag" in msg.lower():
         return addFlag(msg, FlagEmotes.Red.value, currentEvent)
