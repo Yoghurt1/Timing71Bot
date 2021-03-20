@@ -116,8 +116,14 @@ class TimingSession(ApplicationSession):
 			return None
 
 		async def sendToDiscord(ctx, message):
-			await asyncio.sleep(int(self._config.delay))
-			await ctx.send(message)
+			try:
+				await asyncio.sleep(int(self._config.delay))
+				logging.info("Sending message:")
+				logging.info(message)
+				await ctx.send(message)
+			except Exception as e:
+				logging.error("Failed to send message to Discord:")
+				logging.error(e)
 
 		def onNewTrackMessage(i):
 			logging.info("[TRACK EVENT]")
@@ -127,7 +133,7 @@ class TimingSession(ApplicationSession):
 
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
-			if "Chequered flag" in msg[2]:
+			if any(x in msg[2].lower() for x in ["chequered flag", "checkered flag"]):
 				self._config.set("delay", "0")
 				asyncio.run_coroutine_threadsafe(self._client.change_presence(), loop)
 				carSub.unsubscribe()
