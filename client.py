@@ -37,8 +37,7 @@ class TimingSession(ApplicationSession):
 	_config = Settings(defaults={
 			"adminRole": "Admin",
 			"modRole": "Tiddy Boiz",
-			"delay": 0,
-			"excludes": ["pb", None]
+			"delay": 0
 		},
 		filename="config.json"
 	)
@@ -144,7 +143,7 @@ class TimingSession(ApplicationSession):
 
 			logging.info(msg)
 
-			if msg[3] not in self._config.excludes:
+			if msg[3] not in ["pb", None]:
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
