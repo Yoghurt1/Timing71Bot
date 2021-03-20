@@ -4,6 +4,7 @@ from discord.ext import commands
 class DiscordClient(commands.Bot):
 	async def on_ready(self):
 		logging.info('We have logged in as {0.user}'.format(self))
+		await self.timingClient.fetchEvents()
 
 	def __init__(self, timingClient):
 		super().__init__(command_prefix=".")
@@ -21,3 +22,6 @@ class DiscordClient(commands.Bot):
 			await ctx.send("Have some patience, child. {0}.".format(exception))
 		elif isinstance(exception, commands.CommandInvokeError):
 			await ctx.send("Unknown error occurred. Good job, idiot.")
+
+	async def on_disconnect(self):
+		print("Discord client disconnecting")

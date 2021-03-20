@@ -3,3 +3,5 @@ discord==1.0.1
 lzstring==1.0.3
 nest-asyncio==1.4.1
 requests==2.22.0
+discord_config==0.0.2
+cbor

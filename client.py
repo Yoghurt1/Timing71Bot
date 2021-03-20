@@ -12,14 +12,14 @@ import os
 import sys
 import time
 import logging
-from autobahn.wamp.types import SubscribeOptions
+import discord
+from autobahn.wamp.types import SubscribeOptions, ComponentConfig
 from autobahn.asyncio.wamp import ApplicationSession, ApplicationRunner
+from autobahn.asyncio.component import Component, run
 from lzstring import LZString
-from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 from helpers import msgFormat
 from discord_config import Settings
-from functools import partial
 
 def getRelay():
 	getRelays = requests.get("https://www.timing71.org/relays")
@@ -28,37 +28,68 @@ def getRelay():
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 
-class Component(ApplicationSession):
+NUM_REACTS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
+
+class TimingSession(ApplicationSession):
 	_events = []
 	_currentEvent = []
 	_status = ""
 	_config = Settings(defaults={
 			"adminRole": "Admin",
 			"modRole": "Tiddy Boiz",
-			"delay": 0
+			"delay": 0,
+			"excludes": ["pb", None]
 		},
-		filename="config.json",
+		filename="config.json"
 	)
 	_executor = ThreadPoolExecutor(2)
 	_manifest = ""
+	_client = None
 
 	async def onJoin(self, details):
-		await self.fetchEvents()
-
 		def startClient():
-			client = discordClient.DiscordClient(self)
-			client.run(TOKEN)
+			self._client = discordClient.DiscordClient(self)
+			self._client.run(TOKEN)
 
 		loop = asyncio.get_event_loop()
 		loop.run_in_executor(self._executor, startClient())
 
+	async def sendEventMsg(self, channel, msg, currentEvents):
+		msg = await channel.send(msg)
+
+		for i in range(len(currentEvents)):
+			await msg.add_reaction(NUM_REACTS[i])
+
+		while True:
+			updatedMsg = await channel.fetch_message(msg.id)
+			for idx, react in enumerate(updatedMsg.reactions):
+				if react.count >= 5:
+					await channel.send("React threshold reached for event number {0}, connecting.".format(idx + 1))
+					return await self.connectToEvent(str(idx + 1), channel)
+			
+			await asyncio.sleep(1)
+
+		
+
 	async def fetchEvents(self):
 		def onEventsFetched(i):
-			self._events = i["payload"]
+			if i["payload"] != [] and self._events != i["payload"]:
+				self._events = i["payload"]
+				currentEvents = []
+				loop = asyncio.get_event_loop()
+
+				for idx, event in enumerate(self._events):
+					currentEvents.append(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
+
+				msg = "New event(s) started:\n"
+				msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
+				channel = self._client.get_channel(767481691529805846)
+
+				asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
 
 		self.subscribe(onEventsFetched, "livetiming.directory", options=SubscribeOptions(get_retained=True))
 	
-	async def events(self):
+	def events(self):
 		currentEvents = []
 		if self._events == []:
 			return "No events currently ongoing."
@@ -78,6 +109,10 @@ class Component(ApplicationSession):
 			self._currentEvent = event
 
 			logging.info("Subscribing to " + event["uuid"])
+
+			activity = discord.Activity(type=discord.ActivityType.watching, name=event["name"] + " - " + event["description"])
+			await self._client.change_presence(activity=activity)
+			
 		else:
 			return None
 
@@ -95,6 +130,10 @@ class Component(ApplicationSession):
 
 			if "Chequered flag" in msg[2]:
 				self._config.set("delay", "0")
+				asyncio.run_coroutine_threadsafe(self._client.change_presence(), loop)
+				carSub.unsubscribe()
+				trackSub.unsubscribe()
+				pitSub.unsubscribe()
 
 		def onNewCarMessage(i):
 			logging.info("[CAR EVENT]")
@@ -105,15 +144,15 @@ class Component(ApplicationSession):
 
 			logging.info(msg)
 
-			if msg[3] not in ['pb', None]:
+			if msg[3] not in self._config.excludes:
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
 			logging.info("[PIT EVENT]")
 
-		self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
-		self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages")
-		self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
+		carSub = self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
+		trackSub = self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages")
+		pitSub = self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
 	
 	def formatCarMessage(self, msg):
 		if msg[1] == '':
@@ -153,11 +192,13 @@ class Component(ApplicationSession):
 		os.execv(__file__, sys.argv)
 
 	def onDisconnect(self):
-		asyncio.get_event_loop().stop()
+		asyncio.get_event_loop().close()
 
 if __name__ == '__main__':
-	url = getRelay()
-	realm = "timing"
+	component = Component(
+		session_factory=TimingSession,
+		transports=getRelay(),
+		realm="timing"
+	)
 
-	runner = ApplicationRunner(url, realm)
-	runner.run(Component)
+	run([component])

@@ -17,7 +17,7 @@ class TimingCog(commands.Cog):
 
 	@commands.command()
 	async def events(self, ctx):
-		res = await self.bot.timingClient.events()
+		res = self.bot.timingClient.events()
 		await ctx.send(res)
 
 	@commands.command()
