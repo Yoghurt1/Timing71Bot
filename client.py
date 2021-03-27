@@ -103,14 +103,18 @@ class TimingSession(ApplicationSession):
 	async def closeEvent(self):
 		self._config.set("delay", "0")
 		await self._client.change_presence()
-		await self._carSub.result().unsubscribe()
-		await self._trackSub.result().unsubscribe()
-		await self._pitSub.result().unsubscribe()
-		logging.info("Unsubscribed from event {0}".format(self._currentEvent["uuid"]))
+
+		if self._carSub != None:
+			await self._carSub.result().unsubscribe()
+			await self._trackSub.result().unsubscribe()
+			await self._pitSub.result().unsubscribe()
+			logging.info("Unsubscribed from event {0}".format(self._currentEvent["uuid"]))
+
 		self._currentEvent = []
 
 	async def connectToEvent(self, eventNum, ctx):
 		loop = asyncio.get_event_loop()
+		await self.closeEvent()
 
 		if len(eventNum) == 1:
 			eventNum = int(eventNum) - 1
