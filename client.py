@@ -84,7 +84,7 @@ class TimingSession(ApplicationSession):
 
 				msg = "New event(s) started:\n"
 				msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
-				channel = self._client.get_channel(767481691529805846)
+				channel = self._client.get_channel(295518694694453248)
 
 				asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
 
