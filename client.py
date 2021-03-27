@@ -44,6 +44,9 @@ class TimingSession(ApplicationSession):
 	_executor = ThreadPoolExecutor(2)
 	_manifest = ""
 	_client = None
+	_carSub = None
+	_trackSub = None
+	_pitSub = None
 
 	async def onJoin(self, details):
 		def startClient():
@@ -64,11 +67,10 @@ class TimingSession(ApplicationSession):
 			for idx, react in enumerate(updatedMsg.reactions):
 				if react.count >= 5:
 					await channel.send("React threshold reached for event number {0}, connecting.".format(idx + 1))
+					await updatedMsg.delete()
 					return await self.connectToEvent(str(idx + 1), channel)
 			
 			await asyncio.sleep(1)
-
-		
 
 	async def fetchEvents(self):
 		def onEventsFetched(i):
@@ -82,7 +84,7 @@ class TimingSession(ApplicationSession):
 
 				msg = "New event(s) started:\n"
 				msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
-				channel = self._client.get_channel(295518694694453248)
+				channel = self._client.get_channel(767481691529805846)
 
 				asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
 
@@ -97,6 +99,15 @@ class TimingSession(ApplicationSession):
 			currentEvents.append(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
 		
 		return "\n".join(currentEvents)
+
+	async def closeEvent(self):
+		self._config.set("delay", "0")
+		await self._client.change_presence()
+		await self._carSub.result().unsubscribe()
+		await self._trackSub.result().unsubscribe()
+		await self._pitSub.result().unsubscribe()
+		logging.info("Unsubscribed from event {0}".format(self._currentEvent["uuid"]))
+		self._currentEvent = []
 
 	async def connectToEvent(self, eventNum, ctx):
 		loop = asyncio.get_event_loop()
@@ -134,13 +145,21 @@ class TimingSession(ApplicationSession):
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 
 			if any(x in msg[2].lower() for x in ["chequered flag", "checkered flag"]):
-				self._config.set("delay", "0")
-				asyncio.run_coroutine_threadsafe(self._client.change_presence(), loop)
-				carSub.unsubscribe()
-				trackSub.unsubscribe()
-				pitSub.unsubscribe()
+				asyncio.run_coroutine_threadsafe(asyncio.sleep(300))
+				asyncio.run_coroutine_threadsafe(self.closeEvent(), loop)
 
 		def onNewCarMessage(i):
+			def shouldSendMsg(msg):
+				if any(x in msg[2].lower() for x in ["running slowly or stopped", "has resumed"]):
+					print(msg[2])
+					if any(x in self._currentEvent["description"] for x in ["practice", "qualifying"]):
+						print(self._currentEvent["description"])
+						return False
+				elif msg[3] in ["pb", None]:
+					return False
+				else:
+					return True
+
 			logging.info("[CAR EVENT]")
 			
 			payload = i["payload"]
@@ -149,15 +168,15 @@ class TimingSession(ApplicationSession):
 
 			logging.info(msg)
 
-			if msg[3] not in ["pb", None]:
+			if shouldSendMsg(msg):
 				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
 			logging.info("[PIT EVENT]")
 
-		carSub = self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
-		trackSub = self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages")
-		pitSub = self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
+		self._carSub = self.subscribe(onNewCarMessage, "livetiming.analysis/" + event["uuid"] + "/car_messages", options=SubscribeOptions(match="prefix"))
+		self._trackSub = self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages")
+		self._pitSub = self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
 	
 	def formatCarMessage(self, msg):
 		if msg[1] == '':
@@ -193,8 +212,14 @@ class TimingSession(ApplicationSession):
 		
 		return await sendToDiscord(ctx, "Couldn't find a car with that number.")
 
-	def unbind(self):
-		os.execv(__file__, sys.argv)
+	async def getTrackInfo(self, ctx):
+		async def sendToDiscord(ctx, message):
+			await ctx.send(msgFormat.formatTrackInfo(message, self._currentEvent))
+
+		print(self._currentEvent["trackDataSpec"])
+		res = await self.call("livetiming.service.requestState.{0}".format(self._currentEvent["uuid"]))
+		trackDict = dict(zip(self._currentEvent["trackDataSpec"], res["session"]["trackData"]))
+		print(msgFormat.formatTrackInfo(trackDict, self._currentEvent))
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().close()

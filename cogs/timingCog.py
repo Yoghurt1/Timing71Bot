@@ -37,8 +37,7 @@ class TimingCog(commands.Cog):
 	@commands.has_any_role(_config.adminRole, _config.modRole)
 	async def unbind(self, ctx):
 		await ctx.send("Unbinding, I'll be available again shortly.")
-		self._config.set("delay", 0)
-		self.bot.timingClient.unbind()
+		await self.bot.timingClient.closeEvent()
 	
 	@commands.command()
 	async def car(self, ctx, carNum, spec=None):
@@ -47,6 +46,10 @@ class TimingCog(commands.Cog):
 			await self.bot.timingClient.getCarDetails(ctx, carNum, spec)
 		else:
 			logging.error(".car command called outside PMs or #bot_log by {0}".format(ctx.author))
+
+	@commands.command()
+	async def trackInfo(self, ctx):
+		await self.bot.timingClient.getTrackInfo(ctx)
 
 def setup(bot):
 	bot.add_cog(TimingCog(bot))

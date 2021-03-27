@@ -75,3 +75,9 @@ def formatCarInfo(carDict, spec, currentEvent):
     
     return addEvent(res, currentEvent)
 		
+def formatTrackInfo(trackInfo, currentEvent):
+    res = ""
+    for key, value in trackInfo.items():
+        res = res + "{0}: {1}\n".format(key, value)
+
+    return addEvent(res, currentEvent)
