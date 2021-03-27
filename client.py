@@ -219,7 +219,7 @@ class TimingSession(ApplicationSession):
 		print(self._currentEvent["trackDataSpec"])
 		res = await self.call("livetiming.service.requestState.{0}".format(self._currentEvent["uuid"]))
 		trackDict = dict(zip(self._currentEvent["trackDataSpec"], res["session"]["trackData"]))
-		print(msgFormat.formatTrackInfo(trackDict, self._currentEvent))
+		await sendToDiscord(ctx, trackDict)
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().close()
