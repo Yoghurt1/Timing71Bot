@@ -28,13 +28,6 @@ class ManagementCog(commands.Cog):
 		await ctx.send("Set mod role to " + roleName)
 
 	@commands.command()
-	@commands.has_any_role(_config.adminRole, _config.modRole)
-	async def setDelay(self, ctx, delay):
-		self._config.set('delay', delay)
-		self._config.save()
-		await ctx.send("Set delay to " + delay)
-
-	@commands.command()
 	async def bulg(self, ctx):
 		await ctx.send("🛌")
 

@@ -51,5 +51,11 @@ class TimingCog(commands.Cog):
 	async def trackInfo(self, ctx):
 		await self.bot.timingClient.getTrackInfo(ctx)
 
+	@commands.command()
+	@commands.has_any_role(_config.adminRole, _config.modRole)
+	async def setDelay(self, ctx, delay):
+		self.bot.timingClient.setDelay(delay)
+		await ctx.send("Set delay to " + delay)
+
 def setup(bot):
 	bot.add_cog(TimingCog(bot))

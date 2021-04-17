@@ -84,7 +84,7 @@ class TimingSession(ApplicationSession):
 
 				msg = "New event(s) started:\n"
 				msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
-				channel = self._client.get_channel(295518694694453248)
+				channel = self._client.get_channel(767481691529805846)
 
 				asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
 
@@ -101,13 +101,15 @@ class TimingSession(ApplicationSession):
 		return "\n".join(currentEvents)
 
 	async def closeEvent(self):
-		self._config.set("delay", "0")
 		await self._client.change_presence()
 
 		if self._carSub != None:
-			await self._carSub.result().unsubscribe()
-			await self._trackSub.result().unsubscribe()
-			await self._pitSub.result().unsubscribe()
+			subs = asyncio.gather(
+				self._carSub.result().unsubscribe(),
+				self._trackSub.result().unsubscribe(),
+				self._pitSub.result().unsubscribe()
+			)
+
 			logging.info("Unsubscribed from event {0}".format(self._currentEvent["uuid"]))
 
 		self._currentEvent = []
@@ -126,7 +128,6 @@ class TimingSession(ApplicationSession):
 
 			activity = discord.Activity(type=discord.ActivityType.watching, name=event["name"] + " - " + event["description"])
 			await self._client.change_presence(activity=activity)
-			
 		else:
 			return None
 
@@ -147,10 +148,6 @@ class TimingSession(ApplicationSession):
 			logging.info(msg)
 
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
-
-			if any(x in msg[2].lower() for x in ["chequered flag", "checkered flag"]):
-				asyncio.run_coroutine_threadsafe(asyncio.sleep(300))
-				asyncio.run_coroutine_threadsafe(self.closeEvent(), loop)
 
 		def onNewCarMessage(i):
 			def shouldSendMsg(msg):
@@ -224,6 +221,10 @@ class TimingSession(ApplicationSession):
 		res = await self.call("livetiming.service.requestState.{0}".format(self._currentEvent["uuid"]))
 		trackDict = dict(zip(self._currentEvent["trackDataSpec"], res["session"]["trackData"]))
 		await sendToDiscord(ctx, trackDict)
+	
+	def setDelay(self, delay):
+		self._config.set("delay", delay)
+		self._config.save()
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().close()
