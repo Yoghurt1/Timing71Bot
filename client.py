@@ -85,7 +85,7 @@ class TimingSession(ApplicationSession):
 			logging.info(i["payload"])
 			logging.info("self._events:")
 			logging.info(self._events)
-			if i["payload"] != [] and self._events != i["payload"]:
+			if i["payload"] != [] and self._events != i["payload"] and self._currentEvent not in i["payload"]:
 				self._events = i["payload"]
 				currentEvents = []
 				loop = asyncio.get_event_loop()
