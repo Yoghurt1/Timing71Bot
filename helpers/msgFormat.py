@@ -11,6 +11,7 @@ class FlagEmotes(Enum):
 	Retired = "<:F_:592914927396585472>"
 	Red = "<:redflag:759534303842402314>"
 	Code60 = "<:code60:759432100558012436>"
+    OffTrack = "<:offtrack:769633560327880706>"
 	Checkered = "🏁"
 	Investigation = "🔍"
 
@@ -28,7 +29,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.SafetyCar.value, currentEvent)
     elif "green flag" in msg.lower():
         return addFlag(msg, FlagEmotes.Green.value, currentEvent)
-    elif any(x in msg.lower() for x in ["warning", "black / white"]):
+    elif any(x in msg.lower() for x in ["warning", "black / white", "black and white"]):
         return addFlag(msg, FlagEmotes.BlackWhite.value, currentEvent)
     elif "penalty" in msg.lower():
         return addFlag(msg, FlagEmotes.Black.value, currentEvent)
@@ -44,6 +45,8 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Red.value, currentEvent)
     elif "under investigation" in msg.lower():
         return addFlag(msg, FlagEmotes.Investigation.value, currentEvent)
+    elif "track limits" in msg.lower():
+        return addFlag(msg, FlagEmotes.OffTrack.value, currentEvent)
     else:
         return ("**" + currentEvent["name"] + " - " + currentEvent["description"] + "**\n" + msg)
 
