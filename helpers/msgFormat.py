@@ -11,7 +11,7 @@ class FlagEmotes(Enum):
 	Retired = "<:F_:592914927396585472>"
 	Red = "<:redflag:759534303842402314>"
 	Code60 = "<:code60:759432100558012436>"
-    OffTrack = "<:offtrack:769633560327880706>"
+	OffTrack = "<:offtrack:769633560327880706>"
 	Checkered = "🏁"
 	Investigation = "🔍"
 
