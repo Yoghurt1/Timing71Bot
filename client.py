@@ -81,10 +81,10 @@ class TimingSession(ApplicationSession):
 
 	async def fetchEvents(self):
 		def onEventsFetched(i):
-		logging.log("Payload:")
-		logging.log(i["payload"])
-		logging.log("self._events:")
-		logging.log(self._events)
+			logging.info("Payload:")
+			logging.info(i["payload"])
+			logging.info("self._events:")
+			logging.info(self._events)
 			if i["payload"] != [] and self._events != i["payload"]:
 				self._events = i["payload"]
 				currentEvents = []
