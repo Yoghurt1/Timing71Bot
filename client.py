@@ -27,7 +27,7 @@ def getRelay():
 	return list(relays.keys())[0]
 
 TOKEN = os.environ["DISCORD_TOKEN"]
-
+TIMEOUT = 300
 NUM_REACTS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
 
 class TimingSession(ApplicationSession):
@@ -62,8 +62,13 @@ class TimingSession(ApplicationSession):
 		for i in range(len(currentEvents)):
 			await msg.add_reaction(NUM_REACTS[i])
 
-		while True:
-			updatedMsg = await channel.fetch_message(msg.id)
+		timer = time.time()
+
+		while time.time() < timer + TIMEOUT:
+			try:
+				updatedMsg = await channel.fetch_message(msg.id)
+			except Exception:
+				return
 			for idx, react in enumerate(updatedMsg.reactions):
 				if react.count >= 5:
 					await channel.send("React threshold reached for event number {0}, connecting.".format(idx + 1))
@@ -72,8 +77,14 @@ class TimingSession(ApplicationSession):
 			
 			await asyncio.sleep(1)
 
+		return await msg.delete()
+
 	async def fetchEvents(self):
 		def onEventsFetched(i):
+		logging.log("Payload:")
+		logging.log(i["payload"])
+		logging.log("self._events:")
+		logging.log(self._events)
 			if i["payload"] != [] and self._events != i["payload"]:
 				self._events = i["payload"]
 				currentEvents = []
