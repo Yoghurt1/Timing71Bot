@@ -1,5 +1,6 @@
 from enum import Enum
 import datetime
+import logging
 
 class FlagEmotes(Enum):
 	Yellow = "<:yellowflag:759534303817236550>"
@@ -63,6 +64,9 @@ def cleanCarInfoValue(value):
         return value
 
 def formatCarInfo(carDict, spec, currentEvent):
+    if isinstance(carDict, str):
+		return addEvent(carDict, currentEvent)
+	
     res = ""
     if spec is not None:
         for key, value in carDict.items():

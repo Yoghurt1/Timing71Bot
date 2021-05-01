@@ -81,10 +81,6 @@ class TimingSession(ApplicationSession):
 
 	async def fetchEvents(self):
 		def onEventsFetched(i):
-			logging.info("Payload:")
-			logging.info(i["payload"])
-			logging.info("self._events:")
-			logging.info(self._events)
 			if i["payload"] != [] and self._events != i["payload"] and self._currentEvent not in i["payload"]:
 				self._events = i["payload"]
 				currentEvents = []
@@ -208,7 +204,8 @@ class TimingSession(ApplicationSession):
 			await ctx.send(msgFormat.formatCarInfo(message, spec, self._currentEvent))
 
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
-		for car in res["cars"]:
+		logging.info(res)
+		for car in res["cars"][0]:
 			if car[0] == str(carNum):
 				specList = []
 				for col in self._currentEvent["colSpec"]:
