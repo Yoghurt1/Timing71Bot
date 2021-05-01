@@ -3,18 +3,18 @@ import datetime
 import logging
 
 class FlagEmotes(Enum):
-	Yellow = "<:yellowflag:759534303817236550>"
-	Green = "<:greenflag:759534303821692988>"
-	BlackWhite = "<:blackwhiteflag:759447554047475723>"
-	Black = "<:blackflag:759534303595331615>"
-	SafetyCar = "<:safetycar:757207851893522472>"
-	Fcy = "<:fcy:759432420092805170>"
-	Retired = "<:F_:592914927396585472>"
-	Red = "<:redflag:759534303842402314>"
-	Code60 = "<:code60:759432100558012436>"
-	OffTrack = "<:offtrack:769633560327880706>"
-	Checkered = "🏁"
-	Investigation = "🔍"
+    Yellow = "<:yellowflag:759534303817236550>"
+    Green = "<:greenflag:759534303821692988>"
+    BlackWhite = "<:blackwhiteflag:759447554047475723>"
+    Black = "<:blackflag:759534303595331615>"
+    SafetyCar = "<:safetycar:757207851893522472>"
+    Fcy = "<:fcy:759432420092805170>"
+    Retired = "<:F_:592914927396585472>"
+    Red = "<:redflag:759534303842402314>"
+    Code60 = "<:code60:759432100558012436>"
+    OffTrack = "<:offtrack:769633560327880706>"
+    Checkered = "🏁"
+    Investigation = "🔍"
 
 def addEvent(msg, currentEvent):
     return ("**" + currentEvent["name"] + " - " + currentEvent["description"] + "**\n" + msg)
@@ -65,8 +65,8 @@ def cleanCarInfoValue(value):
 
 def formatCarInfo(carDict, spec, currentEvent):
     if isinstance(carDict, str):
-		return addEvent(carDict, currentEvent)
-	
+        return addEvent(carDict, currentEvent)
+    
     res = ""
     if spec is not None:
         for key, value in carDict.items():
@@ -81,7 +81,7 @@ def formatCarInfo(carDict, spec, currentEvent):
             res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(value))
     
     return addEvent(res, currentEvent)
-		
+        
 def formatTrackInfo(trackInfo, currentEvent):
     res = ""
     for key, value in trackInfo.items():
