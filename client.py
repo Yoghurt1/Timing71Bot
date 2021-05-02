@@ -205,7 +205,7 @@ class TimingSession(ApplicationSession):
 
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
 		logging.info(res)
-		for car in res["cars"][0]:
+		for car in res["cars"]:
 			if car[0] == str(carNum):
 				specList = []
 				for col in self._currentEvent["colSpec"]:
