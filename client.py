@@ -81,7 +81,7 @@ class TimingSession(ApplicationSession):
 
 	async def fetchEvents(self):
 		def onEventsFetched(i):
-			if i["payload"] != [] and self._events != i["payload"] and self._currentEvent not in i["payload"]:
+			if i["payload"] != [] and self._events != i["payload"]:
 				self._events = i["payload"]
 				currentEvents = []
 				loop = asyncio.get_event_loop()
@@ -89,11 +89,12 @@ class TimingSession(ApplicationSession):
 				for idx, event in enumerate(self._events):
 					currentEvents.append(str(idx + 1) + ". " + event["name"] + " - " + event["description"])
 
-				msg = "New event(s) started:\n"
-				msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
-				channel = self._client.get_channel(295518694694453248)
+				if self._currentEvent not in i["payload"]:
+					msg = "New event(s) started:\n"
+					msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
+					channel = self._client.get_channel(295518694694453248)
 
-				asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
+					asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
 
 		self.subscribe(onEventsFetched, "livetiming.directory", options=SubscribeOptions(get_retained=True))
 	
@@ -123,7 +124,9 @@ class TimingSession(ApplicationSession):
 
 	async def connectToEvent(self, eventNum, ctx):
 		loop = asyncio.get_event_loop()
-		await self.closeEvent()
+
+		if self._currentEvent != []:
+			await self.closeEvent()
 
 		if len(eventNum) == 1:
 			eventNum = int(eventNum) - 1

@@ -14,6 +14,7 @@ class FlagEmotes(Enum):
     Code60 = "<:code60:759432100558012436>"
     OffTrack = "<:offtrack:769633560327880706>"
     Meatball = "<:meatball:759447536376873000>"
+    Blue = "<:blueflag:759534303788400670>"
     Checkered = "🏁"
     Investigation = "🔍"
 
@@ -51,6 +52,8 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.OffTrack.value, currentEvent)
     elif any(x in msg.lower() for x in ["black / orange", "black and orange", "meatball"]):
         return addFlag(msg, FlagEmotes.Meatball.value, currentEvent)
+    elif "blue flag" in msg.lower():
+        return addFlag(msg, FlagEmotes.Blue.value, currentEvent)
     else:
         return ("**" + currentEvent["name"] + " - " + currentEvent["description"] + "**\n" + msg)
 
