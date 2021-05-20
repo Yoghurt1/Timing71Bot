@@ -57,13 +57,17 @@ def formatWithFlags(msg, currentEvent):
     else:
         return ("**" + currentEvent["name"] + " - " + currentEvent["description"] + "**\n" + msg)
 
-def cleanCarInfoValue(value):
+def cleanCarInfoValue(spec, value):
     if isinstance(value, list):
-        try:
+        if "time" in spec.lower():
             time = datetime.datetime.utcfromtimestamp(float(value[0]))
             return datetime.datetime.strftime(time, "%M:%S.%f")[:-3]
-        except ValueError:
-            return value[0]
+        elif "speed" in spec.lower():
+            return "{0}mph".format(value[0] if value[0] != "" else 0)
+        else:
+            return value[0] if value[0] != "" else 0
+    elif "speed" in spec.lower():
+        return "{0}mph".format(value)
     elif value == "":
         return "N/A"
     else:
@@ -77,14 +81,14 @@ def formatCarInfo(carDict, spec, currentEvent):
     if spec is not None:
         for key, value in carDict.items():
             if spec.lower() == key.lower():
-                res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(value))
+                res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(key, value))
             elif spec.lower() in key.lower():
-                res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(value))
+                res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(key, value))
     else:
         for key, value in carDict.items():
             if any(x in key.lower() for x in ["sector"]):
                 continue
-            res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(value))
+            res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(key, value))
     
     return addEvent(res, currentEvent)
         

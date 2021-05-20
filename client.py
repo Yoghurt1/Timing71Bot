@@ -47,6 +47,7 @@ class TimingSession(ApplicationSession):
 	_carSub = None
 	_trackSub = None
 	_pitSub = None
+	_carDetails = None
 
 	async def onJoin(self, details):
 		def startClient():
@@ -92,7 +93,7 @@ class TimingSession(ApplicationSession):
 				if self._currentEvent not in i["payload"]:
 					msg = "New event(s) started:\n"
 					msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
-					channel = self._client.get_channel(295518694694453248)
+					channel = self._client.get_channel(767481691529805846)
 
 					asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
 
@@ -180,7 +181,11 @@ class TimingSession(ApplicationSession):
 			logging.info(msg)
 
 			if shouldSendMsg(msg):
-				asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
+				if "indycar" in self._currentEvent["name"].lower() and msg[3] == "sb":
+					carDetailsFut = asyncio.run_coroutine_threadsafe(self._getCarDetailsInt(msg[4], "last lap speed"), loop)
+					carDetailsFut.add_done_callback(lambda fut: asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg, self._carDetails)), loop))
+				else:
+					asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatCarMessage(msg)), loop)
 		
 		def onNewPitMessage(i):
 			logging.info("[PIT EVENT]")
@@ -189,11 +194,14 @@ class TimingSession(ApplicationSession):
 		self._trackSub = self.subscribe(onNewTrackMessage, "livetiming.analysis/" + event["uuid"] + "/messages")
 		self._pitSub = self.subscribe(onNewPitMessage, "livetiming.analysis/" + event["uuid"] + "/stint", options=SubscribeOptions(match="prefix"))
 	
-	def formatCarMessage(self, msg):
+	def formatCarMessage(self, msg, extraDetails=None):
 		if msg[1] == '':
 			return msgFormat.formatWithFlags(msg[2], self._currentEvent)
 		else:
-			cleanMsg = msg[1] + " - " + msg[2]
+			if extraDetails != None:
+				cleanMsg = msg[1] + " - " + msg[2] + " / " + extraDetails.split(" ")[-1]
+			else:
+				cleanMsg = msg[1] + " - " + msg[2]
 
 			return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
 
@@ -201,13 +209,9 @@ class TimingSession(ApplicationSession):
 		cleanMsg = msg[1] + " - " + msg[2]
 
 		return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
-		
-	async def getCarDetails(self, ctx, carNum, spec=None):
-		async def sendToDiscord(ctx, message):
-			await ctx.send(msgFormat.formatCarInfo(message, spec, self._currentEvent))
 
+	async def _getCarDetailsInt(self, carNum, spec=None):
 		res = await self.call("livetiming.service.requestState." + self._currentEvent["uuid"])
-		logging.info(res)
 		for car in res["cars"]:
 			if car[0] == str(carNum):
 				specList = []
@@ -220,9 +224,17 @@ class TimingSession(ApplicationSession):
 				carList = [i for i in car]
 
 				carDict = dict(zip(specList, carList))
-				return await sendToDiscord(ctx, carDict)
+				self._carDetails = msgFormat.formatCarInfo(carDict, spec, self._currentEvent)
 		
-		return await sendToDiscord(ctx, "Couldn't find a car with that number.")
+	async def getCarDetails(self, ctx, carNum, spec=None):
+		async def sendToDiscord(ctx, message):
+			await ctx.send(message)
+
+		try:
+			await self._getCarDetailsInt(carNum, spec)
+			return await sendToDiscord(ctx, self._carDetails)
+		except:
+			return await sendToDiscord(ctx, "Couldn't find a car with that number.")
 
 	async def getTrackInfo(self, ctx):
 		async def sendToDiscord(ctx, message):
