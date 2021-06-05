@@ -156,6 +156,7 @@ class TimingSession(ApplicationSession):
 			logging.info("[TRACK EVENT]")
 			
 			msg = i["payload"]["messages"][0]
+			logging.info(i["payload"]["messages"])
 			logging.info(msg)
 
 			asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
