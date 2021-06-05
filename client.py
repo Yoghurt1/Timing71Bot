@@ -157,8 +157,6 @@ class TimingSession(ApplicationSession):
 
 		def onNewTrackMessage(i):
 			logging.info("[TRACK EVENT]")
-
-			logging.info(reversed(i["payload"]["messages"]))
 			
 			for msg in reversed(i["payload"]["messages"]):
 				if msg[0] > self._lastTimestamp:
@@ -166,15 +164,11 @@ class TimingSession(ApplicationSession):
 					asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 			
 			self._lastTimestamp = i["payload"]["messages"][0][0]
-			
-			logging.info(self._lastTimestamp)
 
 		def onNewCarMessage(i):
 			def shouldSendMsg(msg):
 				if any(x in msg[2].lower() for x in ["running slowly or stopped", "has resumed"]):
-					print(msg[2])
 					if any(x in self._currentEvent["description"] for x in ["practice", "qualifying"]):
-						print(self._currentEvent["description"])
 						return False
 				elif msg[3] in ["pb", None]:
 					return False
