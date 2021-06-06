@@ -157,6 +157,8 @@ class TimingSession(ApplicationSession):
 
 		def onNewTrackMessage(i):
 			logging.info("[TRACK EVENT]")
+
+			logging.info(i["payload"]["messages"])
 			
 			for msg in reversed(i["payload"]["messages"]):
 				if msg[0] > self._lastTimestamp:
