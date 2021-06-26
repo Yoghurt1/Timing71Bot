@@ -48,7 +48,7 @@ class TimingSession(ApplicationSession):
 	_trackSub = None
 	_pitSub = None
 	_carDetails = None
-	_lastTimestamp = 0
+	_lastTimestamp = 0.0
 
 	async def onJoin(self, details):
 		def startClient():
@@ -128,6 +128,7 @@ class TimingSession(ApplicationSession):
 	async def connectToEvent(self, eventNum, ctx):
 		loop = asyncio.get_event_loop()
 		self._lastTimestamp = time.time()
+		logging.info("Timestamp: {0}".format(self._lastTimestamp))
 
 		if self._currentEvent != []:
 			await self.closeEvent()
@@ -161,9 +162,9 @@ class TimingSession(ApplicationSession):
 			logging.info(i["payload"]["messages"])
 			logging.info("Original timestamp: {0}".format(self._lastTimestamp))
 
-			for msg in reversed(i["payload"]["messages"][0]):
-				if msg[0] > self._lastTimestamp:
-					logging.info(msg)
+			for msg in reversed(i["payload"]["messages"]):
+				logging.info(msg)
+				if float(msg[0]) > float(self._lastTimestamp):
 					asyncio.run_coroutine_threadsafe(sendToDiscord(ctx, self.formatTrackMessage(msg)), loop)
 			
 			self._lastTimestamp = i["payload"]["messages"][0][0]
