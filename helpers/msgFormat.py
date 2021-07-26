@@ -34,7 +34,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Green.value, currentEvent)
     elif any(x in msg.lower() for x in ["warning", "black / white", "black and white"]):
         return addFlag(msg, FlagEmotes.BlackWhite.value, currentEvent)
-    elif "penalty" in msg.lower():
+    elif any(x in msg.lower() for x in ["penalty", "black flag"]):
         return addFlag(msg, FlagEmotes.Black.value, currentEvent)
     elif "upgraded to code 60" in msg.lower():
         return addFlag(msg, FlagEmotes.Code60.value, currentEvent)

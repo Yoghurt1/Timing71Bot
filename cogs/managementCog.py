@@ -28,14 +28,6 @@ class ManagementCog(commands.Cog):
 		await ctx.send("Set mod role to " + roleName)
 
 	@commands.command()
-	async def bulg(self, ctx):
-		await ctx.send("🛌")
-
-	@commands.command()
-	async def broc(self, ctx):
-		await ctx.send("https://media.discordapp.net/attachments/731131954728009760/771875090768855050/unknown.png")
-
-	@commands.command()
 	@commands.has_any_role(_config.adminRole, _config.modRole)
 	async def channel(self, ctx):
 		await ctx.send("https://media.discordapp.net/attachments/293550896950935552/804399368638824479/Wrong_channel.jpg?width=744&height=380")

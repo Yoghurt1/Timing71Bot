@@ -257,6 +257,9 @@ class TimingSession(ApplicationSession):
 		self._config.set("delay", delay)
 		self._config.save()
 
+	def getDelay(self):
+		return self._config.delay
+
 	def onDisconnect(self):
 		asyncio.get_event_loop().close()
 

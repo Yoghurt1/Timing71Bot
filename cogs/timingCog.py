@@ -30,8 +30,6 @@ class TimingCog(commands.Cog):
 	async def bindEventError(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
 			return await ctx.send("You haven't provided an event number, genius.")
-		else:
-			return await ctx.send("Unknown error occured.")
 
 	@commands.command()
 	@commands.has_any_role(_config.adminRole, _config.modRole)
@@ -55,7 +53,11 @@ class TimingCog(commands.Cog):
 	@commands.has_any_role(_config.adminRole, _config.modRole)
 	async def setDelay(self, ctx, delay):
 		self.bot.timingClient.setDelay(delay)
-		await ctx.send("Set delay to " + delay)
+		await ctx.send("Delay set to " + delay + " seconds.")
+
+	@commands.command()
+	async def delay(self, ctx):
+		await ctx.send("Delay is currently set to set to " + self.bot.timingClient.getDelay() + " seconds.")
 
 def setup(bot):
 	bot.add_cog(TimingCog(bot))
