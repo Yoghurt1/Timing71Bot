@@ -7,7 +7,8 @@ class TimingCog(commands.Cog):
 	_config = Settings(defaults={
 			"adminRole": "Admin",
 			"modRole": "Tiddy Boiz",
-			"delay": 0
+			"delay": 0,
+			"excludes": []
 		},
 		filename="config.json"
 	)
@@ -58,6 +59,22 @@ class TimingCog(commands.Cog):
 	@commands.command()
 	async def delay(self, ctx):
 		await ctx.send("Delay is currently set to set to " + self.bot.timingClient.getDelay() + " seconds.")
+
+	@commands.command()
+	@commands.has_any_role(_config.adminRole, _config.modRole)
+	async def addExclude(self, ctx, exclude):
+		self.bot.timingClient.addExclude(exclude)
+		await ctx.send("Added " + exclude + " to excludes list.")
+
+	@commands.command()
+	async def excludes(self, ctx):
+		await ctx.send(self.bot.timingClient.getExcludes())
+
+	@commands.command()
+	@commands.has_any_role(_config.adminRole, _config.modRole)
+	async def clearExcludes(self, ctx):
+		self.bot.timingClient.clearExcludes()
+		await ctx.send("Cleared excludes.")
 
 def setup(bot):
 	bot.add_cog(TimingCog(bot))

@@ -37,7 +37,8 @@ class TimingSession(ApplicationSession):
 	_config = Settings(defaults={
 			"adminRole": "Admin",
 			"modRole": "Tiddy Boiz",
-			"delay": 0
+			"delay": 0,
+			"excludes": []
 		},
 		filename="config.json"
 	)
@@ -94,7 +95,7 @@ class TimingSession(ApplicationSession):
 				if self._currentEvent not in i["payload"]:
 					msg = "New event(s) started:\n"
 					msg = msg + "\n".join(currentEvents) + "\nUse the reacts below for each event number if you want to connect."
-					channel = self._client.get_channel(295518694694453248)
+					channel = self._client.get_channel(767481691529805846)
 
 					asyncio.run_coroutine_threadsafe(self.sendEventMsg(channel, msg, currentEvents), loop)
 
@@ -176,6 +177,8 @@ class TimingSession(ApplicationSession):
 					if any(x in self._currentEvent["description"] for x in ["practice", "qualifying"]):
 						return False
 				elif msg[3] in ["pb", None]:
+					return False
+				elif any(x in msg[2].lower() for x in self._config.excludes):
 					return False
 				else:
 					return True
@@ -259,6 +262,18 @@ class TimingSession(ApplicationSession):
 
 	def getDelay(self):
 		return self._config.delay
+
+	def addExclude(self, exclude):
+		newExcludes = self._config.excludes + [exclude]
+		self._config.set("excludes", newExcludes)
+		self._config.save()
+	
+	def getExcludes(self):
+		return self._config.excludes
+
+	def clearExcludes(self):
+		self._config.set("excludes", [])
+		self._config.save()
 
 	def onDisconnect(self):
 		asyncio.get_event_loop().close()
