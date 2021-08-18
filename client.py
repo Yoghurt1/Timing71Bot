@@ -234,8 +234,7 @@ class TimingSession(ApplicationSession):
 
 				carList = [i for i in car]
 
-				carDict = dict(zip(specList, carList))
-				self._carDetails = msgFormat.formatCarInfo(carDict, spec, self._currentEvent)
+				self._carDetails = dict(zip(specList, carList))
 		
 	async def getCarDetails(self, ctx, carNum, spec=None):
 		async def sendToDiscord(ctx, message):
@@ -243,8 +242,21 @@ class TimingSession(ApplicationSession):
 
 		try:
 			await self._getCarDetailsInt(carNum, spec)
-			return await sendToDiscord(ctx, self._carDetails)
+			return await sendToDiscord(ctx, msgFormat.formatCarInfo(self._carDetails, spec, self._currentEvent))
 		except:
+			return await sendToDiscord(ctx, "Couldn't find a car with that number.")
+
+	async def whoIsCar(self, ctx, carNum):
+		async def sendToDiscord(ctx, message):
+			await ctx.send(message)
+
+		try:
+			await self._getCarDetailsInt(carNum)
+			whoIsDict = dict(filter(lambda elem: any(x in elem[0].lower() for x in ["car number", "class", "team", "driver", "car", "position"]), self._carDetails.items()))
+
+			return await sendToDiscord(ctx, msgFormat.formatCarInfo(whoIsDict, None, self._currentEvent))
+		except Exception as e:
+			logging.info(e)
 			return await sendToDiscord(ctx, "Couldn't find a car with that number.")
 
 	async def getTrackInfo(self, ctx):

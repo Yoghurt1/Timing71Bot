@@ -49,6 +49,10 @@ class TimingCog(commands.Cog):
 	@commands.command()
 	async def trackInfo(self, ctx):
 		await self.bot.timingClient.getTrackInfo(ctx)
+	
+	@commands.command()
+	async def whois(self, ctx, carNum):
+		await self.bot.timingClient.whoIsCar(ctx, carNum)
 
 	@commands.command()
 	@commands.has_any_role(_config.adminRole, _config.modRole)
