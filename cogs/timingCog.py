@@ -58,7 +58,7 @@ class TimingCog(commands.Cog):
 
 	@commands.command()
 	async def delay(self, ctx):
-		await ctx.send("Delay is currently set to set to " + self.bot.timingClient.getDelay() + " seconds.")
+		await ctx.send("Delay is currently set to " + self.bot.timingClient.getDelay() + " seconds.")
 
 	@commands.command()
 	@commands.has_any_role(_config.adminRole, _config.modRole)

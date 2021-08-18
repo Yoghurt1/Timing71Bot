@@ -30,7 +30,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Fcy.value, currentEvent)
     elif "safety car" in msg.lower():
         return addFlag(msg, FlagEmotes.SafetyCar.value, currentEvent)
-    elif any(x in msg.lower() for x in ["green flag", "track clear"]):
+    elif any(x in msg.lower() for x in ["green flag", "track clear", "slow removed", "slow zone removed"]):
         return addFlag(msg, FlagEmotes.Green.value, currentEvent)
     elif any(x in msg.lower() for x in ["warning", "black / white", "black and white"]):
         return addFlag(msg, FlagEmotes.BlackWhite.value, currentEvent)
@@ -38,7 +38,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Black.value, currentEvent)
     elif "upgraded to code 60" in msg.lower():
         return addFlag(msg, FlagEmotes.Code60.value, currentEvent)
-    elif any(x in msg.lower() for x in ["yellow", "slow zone", "downgraded to slow"]):
+    elif any(x in msg.lower() for x in ["yellow", "slow zone", "downgraded to slow", "slow at mp", "slow at zone", "slow procedure"]):
         return addFlag(msg, FlagEmotes.Yellow.value, currentEvent)
     elif "retired" in msg.lower():
         return addFlag(msg, FlagEmotes.Retired.value, currentEvent)
