@@ -30,7 +30,7 @@ def formatWithFlags(msg, currentEvent):
         return addFlag(msg, FlagEmotes.Fcy.value, currentEvent)
     elif "safety car" in msg.lower():
         return addFlag(msg, FlagEmotes.SafetyCar.value, currentEvent)
-    elif any(x in msg.lower() for x in ["green flag", "track clear", "slow removed", "slow zone removed"]):
+    elif any(x in msg.lower() for x in ["green flag", "track clear", "slow removed", "slow zone removed", "yellow removed"]):
         return addFlag(msg, FlagEmotes.Green.value, currentEvent)
     elif any(x in msg.lower() for x in ["warning", "black / white", "black and white"]):
         return addFlag(msg, FlagEmotes.BlackWhite.value, currentEvent)
