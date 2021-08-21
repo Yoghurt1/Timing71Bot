@@ -51,6 +51,7 @@ class TimingCog(commands.Cog):
 		await self.bot.timingClient.getTrackInfo(ctx)
 	
 	@commands.command()
+	@commands.has_any_role(_config.adminRole, _config.modRole, "Trusted")
 	async def whois(self, ctx, carNum):
 		await self.bot.timingClient.whoIsCar(ctx, carNum)
 
