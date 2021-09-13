@@ -100,3 +100,6 @@ def formatTrackInfo(trackInfo, currentEvent):
         res = res + "{0}: {1}\n".format(key, value)
 
     return addEvent(res, currentEvent)
+
+def formatEventMessage(index, event):
+    return "{idx}. {name} - {description}".format(idx = (index + 1), name = event["name"], description = event["description"])
