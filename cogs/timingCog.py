@@ -4,6 +4,10 @@ from discord_config import Settings
 import logging
 
 
+def threadCheck(ctx):
+    return isinstance(ctx.channel, Thread)
+
+
 class TimingCog(commands.Cog):
     _config = Settings(
         defaults={
@@ -95,7 +99,3 @@ class TimingCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(TimingCog(bot))
-
-
-def threadCheck(ctx):
-    return isinstance(ctx.channel, Thread)
