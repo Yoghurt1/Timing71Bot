@@ -32,7 +32,7 @@ def getRelay():
 TOKEN = os.environ["DISCORD_TOKEN"]
 TIMEOUT = 300
 NUM_REACTS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
-ECS_ID = 767481691529805846
+ECS_ID = 295518694694453248
 
 
 class TimingSession(ApplicationSession):
