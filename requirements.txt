@@ -1,5 +1,5 @@
 autobahn==20.7.1
-discord==1.7.3
+git+https://github.com/Rapptz/discord.py
 lzstring==1.0.3
 nest-asyncio==1.4.1
 requests==2.22.0
