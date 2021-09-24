@@ -79,7 +79,7 @@ class TimingSession(ApplicationSession):
             except Exception:
                 return
             for idx, react in enumerate(updatedMsg.reactions):
-                if react.count >= 2:
+                if react.count >= 5:
                     await channel.send(
                         "React threshold reached for event number {0}, connecting in new thread.".format(
                             idx + 1
@@ -303,6 +303,7 @@ class TimingSession(ApplicationSession):
 
     async def getCarDetails(self, ctx, carNum, spec=None):
         async def sendToDiscord(ctx, message):
+            await ctx.send(".car {carNum} called by {author}".format(carNum=carNum, author=ctx.author))
             await ctx.send(message)
 
         try:
@@ -318,6 +319,7 @@ class TimingSession(ApplicationSession):
 
     async def whoIsCar(self, ctx, carNum):
         async def sendToDiscord(ctx, message):
+            await ctx.send(".whois {carNum} called by {author}".format(carNum=carNum, author=ctx.author))
             await ctx.send(message)
 
         try:

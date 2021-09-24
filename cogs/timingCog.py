@@ -29,18 +29,18 @@ class TimingCog(commands.Cog):
 
     @commands.command()
     @commands.has_any_role(_config.adminRole, _config.modRole)
-    async def bindevent(self, ctx, eventNum):
+    async def connect(self, ctx, eventNum):
         connectMsg = await ctx.send("Connecting to event number " + str(eventNum) + ".")
         await self.bot.timingClient.connectToEvent(eventNum, connectMsg)
 
-    @bindevent.error
-    async def bindEventError(self, ctx, error):
+    @connect.error
+    async def connectError(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send("You haven't provided an event number, genius.")
 
     @commands.command()
     @commands.has_any_role(_config.adminRole, _config.modRole)
-    async def unbind(self, ctx):
+    async def disconnect(self, ctx):
         await ctx.send("Unbinding, I'll be available again shortly.")
         await self.bot.timingClient.closeEvent()
 
@@ -97,5 +97,22 @@ class TimingCog(commands.Cog):
         await ctx.send("Cleared excludes.")
 
 
+def setupHelp(cog: TimingCog):
+    cog.events.brief = "Fetch current events"
+    cog.events.help = "Will pull a list of events that are ongoing on Timing71 and display them with their respective event numbers. The associated numbers can then be used with .bindevent to connect to the associated event. If there are no events ongoing, a message indicating such will be returned."
+
+    cog.connect.brief = "Connect to an event"
+    cog.connect.help = "Connects to an event with the event number as specified in the response from the .events command. It will then create a new thread where all timing events will be posted. Users cannot post anything in this thread other than other command invokations, such as .car or .whois."
+    cog.connect.usage = "\n\nSyntax: .connect <event_number>"
+
+    cog.car.brief = "Get car details"
+    cog.car.help = "Get details about a car partaking in the current event. By default, it will return all the information about a given participant, however this can be refined with the optional `spec` parameter. For example, `.car 1 lap` would return any fields that have 'lap' in the field description, e.g. laps completed, last lap time, and best lap time."
+    cog.car.usage = "\n\nSyntax: .car <car_number> [filter]"
+
+    return cog
+
+
 def setup(bot):
-    bot.add_cog(TimingCog(bot))
+    timingCog = setupHelp(TimingCog(bot))
+
+    bot.add_cog(timingCog)

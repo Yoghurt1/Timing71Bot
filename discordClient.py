@@ -4,6 +4,8 @@ import discord
 
 
 class DiscordClient(commands.Bot):
+    _commands = ()
+
     async def on_ready(self):
         logging.info("We have logged in as {0.user}".format(self))
         await self.timingClient.fetchEvents()
@@ -14,6 +16,8 @@ class DiscordClient(commands.Bot):
         self.timingClient = timingClient
         self.load_extension("cogs.timingCog")
         self.load_extension("cogs.managementCog")
+
+        _commands = tuple([".{0}".format(i) for i in self.commands])
 
     async def on_command_error(self, ctx, exception):
         logging.error(
@@ -36,9 +40,13 @@ class DiscordClient(commands.Bot):
                 message.channel.owner.bot
                 and message.channel.owner.name == "Timing71Bot"
             ):
-                if message.author.bot == False:
-                    if message.content.startswith(".") == False:
-                        await message.delete()
+                if not message.author.bot:
+                    logging.info(
+                        "Deleting message from {author} in thread: {msg}".format(
+                            author=message.author, msg=message.content
+                        )
+                    )
+                    await message.delete()
 
         await super().on_message(message)
 
