@@ -156,6 +156,8 @@ class TimingSession(ApplicationSession):
             logging.info(
                 "Unsubscribed from event {0}".format(self._currentEvent["uuid"])
             )
+        
+        self._activeThread.edit(archived=True)
 
         self._currentEvent = []
 
