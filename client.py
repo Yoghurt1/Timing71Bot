@@ -50,12 +50,13 @@ class TimingSession(ApplicationSession):
     )
     _executor = ThreadPoolExecutor(2)
     _manifest = ""
-    _client = None
+    _client: discordClient.DiscordClient = None
     _carSub = None
     _trackSub = None
     _pitSub = None
     _carDetails = None
     _lastTimestamp = 0.0
+    _activeThread: discord.Thread = None
 
     async def onJoin(self, details):
         def startClient():
@@ -99,6 +100,9 @@ class TimingSession(ApplicationSession):
 
             if newMsg["payload"] != [] and self._events != newMsg["payload"]:
                 self._events = newMsg["payload"]
+
+                if self._currentEvent not in self._events:
+                    self._activeThread.edit(archived=True)
 
                 currentEvents = []
 
@@ -178,14 +182,14 @@ class TimingSession(ApplicationSession):
             description=self._currentEvent["description"],
         )
 
-        thread = await ctx.create_thread(name=threadName)
+        self._activeThread = await ctx.create_thread(name=threadName)
 
         async def sendToDiscord(message):
             try:
                 await asyncio.sleep(int(self._config.delay))
                 logging.info("Sending message:")
                 logging.info(message)
-                await thread.send(message)
+                await self._activeThread.send(message)
             except Exception as e:
                 logging.error("Failed to send message to Discord:")
                 logging.error(e)
