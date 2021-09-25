@@ -33,6 +33,7 @@ TOKEN = os.environ["DISCORD_TOKEN"]
 TIMEOUT = 300
 NUM_REACTS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
 ECS_ID = 295518694694453248
+REACT_THRESHOLD = 5
 
 
 class TimingSession(ApplicationSession):
@@ -80,7 +81,7 @@ class TimingSession(ApplicationSession):
             except Exception:
                 return
             for idx, react in enumerate(updatedMsg.reactions):
-                if react.count >= 5:
+                if react.count >= REACT_THRESHOLD:
                     threadMaster = await channel.send(
                         "React threshold reached for event number {0}, connecting in new thread.".format(
                             idx + 1
@@ -217,21 +218,10 @@ class TimingSession(ApplicationSession):
 
         def onNewCarMessage(newMsg):
             def shouldSendMsg(msg):
-                if any(
-                    x in msg[2].lower()
-                    for x in ["running slowly or stopped", "has resumed"]
-                ):
-                    if any(
-                        x in self._currentEvent["description"].lower()
-                        for x in ["practice", "qualifying"]
-                    ):
-                        return False
-                elif msg[3] in ["pb", None]:
+                if any(x in msg[2].lower() for x in self._config.excludes):
                     return False
-                elif any(x in msg[2].lower() for x in self._config.excludes):
-                    return False
-                else:
-                    return True
+
+                return True
 
             logging.info("[CAR EVENT]")
 
@@ -257,8 +247,9 @@ class TimingSession(ApplicationSession):
                         sendToDiscord(self.formatCarMessage(msg)), loop
                     )
 
-        def onNewPitMessage(i):
+        def onNewPitMessage(newMsg):
             logging.info("[PIT EVENT]")
+            logging.info(newMsg)
 
         self._carSub = self.subscribe(
             onNewCarMessage,
@@ -279,19 +270,19 @@ class TimingSession(ApplicationSession):
 
     def formatCarMessage(self, msg, extraDetails=None):
         if msg[1] == "":
-            return msgFormat.formatWithFlags(msg[2], self._currentEvent)
+            return msgFormat.formatWithFlags(msg[2])
         else:
             if extraDetails != None:
                 cleanMsg = msg[1] + " - " + msg[2] + " / " + extraDetails.split(" ")[-1]
             else:
                 cleanMsg = msg[1] + " - " + msg[2]
 
-            return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
+            return msgFormat.formatWithFlags(cleanMsg)
 
     def formatTrackMessage(self, msg):
         cleanMsg = msg[1] + " - " + msg[2]
 
-        return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
+        return msgFormat.formatWithFlags(cleanMsg)
 
     async def fetchCarState(self, carNum, spec=None):
         res = await self.call(
@@ -322,7 +313,7 @@ class TimingSession(ApplicationSession):
         try:
             await self.fetchCarState(carNum, spec)
             return await sendToDiscord(
-                ctx, msgFormat.formatCarInfo(self._carDetails, spec, self._currentEvent)
+                ctx, msgFormat.formatCarInfo(self._carDetails, spec)
             )
         except:
             return await sendToDiscord(
@@ -347,20 +338,19 @@ class TimingSession(ApplicationSession):
                         x in elem[0].lower()
                         for x in [
                             "car number",
+                            "state",
                             "class",
                             "team",
                             "driver",
-                            "car",
                             "position",
+                            "car",
                         ]
                     ),
                     self._carDetails.items(),
                 )
             )
 
-            return await sendToDiscord(
-                ctx, msgFormat.formatCarInfo(whoIsDict, None, self._currentEvent)
-            )
+            return await sendToDiscord(ctx, msgFormat.formatCarInfo(whoIsDict, None))
         except Exception as e:
             logging.info(e)
             return await sendToDiscord(
@@ -373,9 +363,7 @@ class TimingSession(ApplicationSession):
             if isinstance(message, str):
                 return await ctx.send(message)
 
-            return await ctx.send(
-                msgFormat.formatTrackInfo(message, self._currentEvent)
-            )
+            return await ctx.send(msgFormat.formatTrackInfo(message))
 
         if self._currentEvent["trackDataSpec"] == []:
             return await sendToDiscord(ctx, "No track data for this session.")

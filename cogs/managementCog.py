@@ -4,7 +4,12 @@ from discord_config import Settings
 
 class ManagementCog(commands.Cog):
     _config = Settings(
-        defaults={"adminRole": "Admin", "modRole": "Tiddy Boiz", "delay": 0},
+        defaults={
+            "adminRole": "Admin",
+            "modRole": "Tiddy Boiz",
+            "delay": 0,
+            "excludes": [],
+        },
         filename="config.json",
     )
 
@@ -13,14 +18,14 @@ class ManagementCog(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def setAdminRole(self, ctx, roleName):
+    async def setadminrole(self, ctx, roleName):
         self._config.set("adminRole", roleName)
         self._config.save()
         await ctx.send("Set admin role to " + roleName)
 
     @commands.command()
     @commands.is_owner()
-    async def setModRole(self, ctx, roleName):
+    async def setmodrole(self, ctx, roleName):
         self._config.set("modRole", roleName)
         self._config.save()
         await ctx.send("Set mod role to " + roleName)

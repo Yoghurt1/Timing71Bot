@@ -41,7 +41,7 @@ class TimingCog(commands.Cog):
     @commands.command()
     @commands.has_any_role(_config.adminRole, _config.modRole)
     async def disconnect(self, ctx):
-        await ctx.send("Unbinding, I'll be available again shortly.")
+        await ctx.send("Disconnecting, I'll be available again shortly.")
         await self.bot.timingClient.closeEvent()
 
     @commands.command()

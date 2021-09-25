@@ -20,25 +20,23 @@ class FlagEmotes(Enum):
     Investigation = "🔍"
 
 
-def addEvent(msg, currentEvent):
-    return (
-        "**" + currentEvent["name"] + " - " + currentEvent["description"] + "**\n" + msg
-    )
+def addSeparator(msg):
+    return "----------------------------------------\n" + msg
 
 
-def addFlag(msg, flag, currentEvent):
+def addFlag(msg, flag):
     msgWithFlag = flag + " " + msg + " " + flag
-    return addEvent(msgWithFlag, currentEvent)
+    return addSeparator(msgWithFlag)
 
 
-def formatWithFlags(msg, currentEvent):
+def formatWithFlags(msg):
     if any(
         x in msg.lower()
         for x in ["full course yellow", "virtual", "full course caution"]
     ):
-        return addFlag(msg, FlagEmotes.Fcy.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Fcy.value)
     elif "safety car" in msg.lower():
-        return addFlag(msg, FlagEmotes.SafetyCar.value, currentEvent)
+        return addFlag(msg, FlagEmotes.SafetyCar.value)
     elif any(
         x in msg.lower()
         for x in [
@@ -49,13 +47,13 @@ def formatWithFlags(msg, currentEvent):
             "yellow removed",
         ]
     ):
-        return addFlag(msg, FlagEmotes.Green.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Green.value)
     elif any(x in msg.lower() for x in ["warning", "black / white", "black and white"]):
-        return addFlag(msg, FlagEmotes.BlackWhite.value, currentEvent)
+        return addFlag(msg, FlagEmotes.BlackWhite.value)
     elif any(x in msg.lower() for x in ["penalty", "black flag"]):
-        return addFlag(msg, FlagEmotes.Black.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Black.value)
     elif "upgraded to code 60" in msg.lower():
-        return addFlag(msg, FlagEmotes.Code60.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Code60.value)
     elif any(
         x in msg.lower()
         for x in [
@@ -67,34 +65,25 @@ def formatWithFlags(msg, currentEvent):
             "slow procedure",
         ]
     ):
-        return addFlag(msg, FlagEmotes.Yellow.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Yellow.value)
     elif "retired" in msg.lower():
-        return addFlag(msg, FlagEmotes.Retired.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Retired.value)
     elif "code 60" in msg.lower():
-        return addFlag(msg, FlagEmotes.Code60.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Code60.value)
     elif any(x in msg.lower() for x in ["chequered flag", "checkered flag"]):
-        return addFlag(msg, FlagEmotes.Checkered.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Checkered.value)
     elif "red flag" in msg.lower():
-        return addFlag(msg, FlagEmotes.Red.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Red.value)
     elif "under investigation" in msg.lower():
-        return addFlag(msg, FlagEmotes.Investigation.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Investigation.value)
     elif "track limits" in msg.lower():
-        return addFlag(msg, FlagEmotes.OffTrack.value, currentEvent)
+        return addFlag(msg, FlagEmotes.OffTrack.value)
     elif any(
         x in msg.lower() for x in ["black / orange", "black and orange", "meatball"]
     ):
-        return addFlag(msg, FlagEmotes.Meatball.value, currentEvent)
+        return addFlag(msg, FlagEmotes.Meatball.value)
     elif "blue flag" in msg.lower():
-        return addFlag(msg, FlagEmotes.Blue.value, currentEvent)
-    else:
-        return (
-            "**"
-            + currentEvent["name"]
-            + " - "
-            + currentEvent["description"]
-            + "**\n"
-            + msg
-        )
+        return addFlag(msg, FlagEmotes.Blue.value)
 
 
 def cleanCarInfoValue(spec, value):
@@ -114,9 +103,9 @@ def cleanCarInfoValue(spec, value):
         return value
 
 
-def formatCarInfo(carDict, spec, currentEvent):
+def formatCarInfo(carDict, spec):
     if isinstance(carDict, str):
-        return addEvent(carDict, currentEvent)
+        return addSeparator(carDict)
 
     res = ""
     if spec is not None:
@@ -131,15 +120,15 @@ def formatCarInfo(carDict, spec, currentEvent):
                 continue
             res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(key, value))
 
-    return addEvent(res, currentEvent)
+    return addSeparator(res)
 
 
-def formatTrackInfo(trackInfo, currentEvent):
+def formatTrackInfo(trackInfo):
     res = ""
     for key, value in trackInfo.items():
         res = res + "{0}: {1}\n".format(key, value)
 
-    return addEvent(res, currentEvent)
+    return addSeparator(res)
 
 
 def formatEventMessage(index, event):
