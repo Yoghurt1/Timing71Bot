@@ -101,7 +101,10 @@ class TimingSession(ApplicationSession):
             if newMsg["payload"] != [] and self._events != newMsg["payload"]:
                 self._events = newMsg["payload"]
 
-                if self._currentEvent not in self._events:
+                if (
+                    self._currentEvent not in self._events
+                    and self._activeThread != None
+                ):
                     self._activeThread.edit(archived=True)
 
                 currentEvents = []
@@ -307,7 +310,11 @@ class TimingSession(ApplicationSession):
 
     async def getCarDetails(self, ctx, carNum, spec=None):
         async def sendToDiscord(ctx, message):
-            await ctx.send(".car {carNum} called by {author}".format(carNum=carNum, author=ctx.author))
+            await ctx.send(
+                ".car {carNum} called by {author}".format(
+                    carNum=carNum, author=ctx.author
+                )
+            )
             await ctx.send(message)
 
         try:
@@ -323,7 +330,11 @@ class TimingSession(ApplicationSession):
 
     async def whoIsCar(self, ctx, carNum):
         async def sendToDiscord(ctx, message):
-            await ctx.send(".whois {carNum} called by {author}".format(carNum=carNum, author=ctx.author))
+            await ctx.send(
+                ".whois {carNum} called by {author}".format(
+                    carNum=carNum, author=ctx.author
+                )
+            )
             await ctx.send(message)
 
         try:
