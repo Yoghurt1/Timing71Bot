@@ -105,9 +105,7 @@ class TimingSession(ApplicationSession):
                     self._currentEvent not in self._events
                     and self._activeThread != None
                 ):
-                    asyncio.run_coroutine_threadsafe(
-                        self._activeThread.edit(archived=True), loop
-                    )
+                    asyncio.run_coroutine_threadsafe(self.closeEvent(), loop)
 
                 currentEvents = []
 
