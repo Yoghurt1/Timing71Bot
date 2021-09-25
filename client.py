@@ -105,7 +105,9 @@ class TimingSession(ApplicationSession):
                     self._currentEvent not in self._events
                     and self._activeThread != None
                 ):
-                    await self._activeThread.edit(archived=True)
+                    asyncio.run_coroutine_threadsafe(
+                        self._activeThread.edit(archived=True), loop
+                    )
 
                 currentEvents = []
 
@@ -156,7 +158,7 @@ class TimingSession(ApplicationSession):
             logging.info(
                 "Unsubscribed from event {0}".format(self._currentEvent["uuid"])
             )
-        
+
         await self._activeThread.edit(archived=True)
 
         self._currentEvent = []
