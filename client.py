@@ -81,14 +81,14 @@ class TimingSession(ApplicationSession):
                 return
             for idx, react in enumerate(updatedMsg.reactions):
                 if react.count >= 5:
-                    await channel.send(
+                    threadMaster = await channel.send(
                         "React threshold reached for event number {0}, connecting in new thread.".format(
                             idx + 1
                         )
                     )
 
                     await updatedMsg.delete()
-                    return await self.connectToEvent(str(idx + 1), channel)
+                    return await self.connectToEvent(str(idx + 1), threadMaster)
 
             await asyncio.sleep(1)
 
