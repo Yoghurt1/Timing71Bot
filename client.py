@@ -251,14 +251,14 @@ class TimingSession(ApplicationSession):
             logging.info("[PIT EVENT]")
             logging.info(newMsg)
 
-        self._analysisManifest = await self.call(
-            "livetiming.service.requestAnalysisManifest.{0}".format(
-                self._currentEvent["uuid"]
-            )
-        )
+        # self._analysisManifest = await self.call(
+        #     "livetiming.service.requestAnalysisManifest.{0}".format(
+        #         self._currentEvent["uuid"]
+        #     )
+        # )
 
-        logging.info("[ANALYSIS MANIFEST]")
-        logging.info(self._analysisManifest)
+        # logging.info("[ANALYSIS MANIFEST]")
+        # logging.info(self._analysisManifest)
 
         self._carSub = self.subscribe(
             onNewCarMessage,
