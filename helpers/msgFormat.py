@@ -18,8 +18,8 @@ class FlagEmotes(Enum):
     Blue = "<:blueflag:759534303788400670>"
     Checkered = "🏁"
     Investigation = "🔍"
-    Green = "🟩"
-    Purple = "🟪"
+    PB = "🟩"
+    SB = "🟪"
     DriverChange = "🔄"
 
 
@@ -88,9 +88,9 @@ def formatWithFlags(msg):
     elif "blue flag" in msg.lower():
         return addFlag(msg, FlagEmotes.Blue.value)
     elif "personal best" in msg.lower():
-        return addFlag(msg, FlagEmotes.Green.value)
+        return addFlag(msg, FlagEmotes.PB.value)
     elif "overall best" in msg.lower():
-        return addFlag(msg, FlagEmotes.Purple.value)
+        return addFlag(msg, FlagEmotes.SB.value)
     elif "driver change" in msg.lower():
         return addFlag(msg, FlagEmotes.DriverChange.value)
     else:
