@@ -84,6 +84,8 @@ def formatWithFlags(msg):
         return addFlag(msg, FlagEmotes.Meatball.value)
     elif "blue flag" in msg.lower():
         return addFlag(msg, FlagEmotes.Blue.value)
+    else:
+        return addSeparator(msg)
 
 
 def cleanCarInfoValue(spec, value):
