@@ -249,16 +249,6 @@ class TimingSession(ApplicationSession):
 
         def onNewPitMessage(newMsg):
             logging.info("[PIT EVENT]")
-            logging.info(newMsg)
-
-        # self._analysisManifest = await self.call(
-        #     "livetiming.service.requestAnalysisManifest.{0}".format(
-        #         self._currentEvent["uuid"]
-        #     )
-        # )
-
-        # logging.info("[ANALYSIS MANIFEST]")
-        # logging.info(self._analysisManifest)
 
         self._carSub = self.subscribe(
             onNewCarMessage,
@@ -282,6 +272,7 @@ class TimingSession(ApplicationSession):
             return msgFormat.formatWithFlags(msg[2])
         else:
             if extraDetails != None:
+                logging.info(extraDetails)
                 cleanMsg = msg[1] + " - " + msg[2] + " / " + extraDetails.split(" ")[-1]
             else:
                 cleanMsg = msg[1] + " - " + msg[2]
