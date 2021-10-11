@@ -16,6 +16,7 @@ class DiscordClient(commands.Bot):
         self.timingClient = timingClient
         self.load_extension("cogs.timingCog")
         self.load_extension("cogs.managementCog")
+        self.load_extension("cogs.memeCog")
 
         _commands = tuple([".{0}".format(i) for i in self.commands])
 
