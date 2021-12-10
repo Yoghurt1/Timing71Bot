@@ -283,12 +283,12 @@ class TimingSession(ApplicationSession):
             else:
                 cleanMsg = msg[1] + " - " + msg[2]
 
-            return msgFormat.formatWithFlags(cleanMsg)
+            return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
 
     def formatTrackMessage(self, msg):
         cleanMsg = msg[1] + " - " + msg[2]
 
-        return msgFormat.formatWithFlags(cleanMsg)
+        return msgFormat.formatWithFlags(cleanMsg, self._currentEvent)
 
     async def fetchCarState(self, carNum, spec=None):
         res = await self.call(

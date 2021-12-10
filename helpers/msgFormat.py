@@ -23,19 +23,21 @@ class FlagEmotes(Enum):
     DriverChange = "🔄"
 
 
-def addFlag(msg, flag):
+def addFlag(msg, flag, event):
     msgWithFlag = flag + " " + msg + " " + flag
-    return msgWithFlag
+    return addEvent(msgWithFlag, event)
 
+def addEvent(msg, event):
+    return "{name} - {description}\n{msg}".format(name=event["name"], description=event["description"], msg=msg)
 
-def formatWithFlags(msg):
+def formatWithFlags(msg, event):
     if any(
         x in msg.lower()
         for x in ["full course yellow", "virtual", "full course caution"]
     ):
-        return addFlag(msg, FlagEmotes.Fcy.value)
+        return addFlag(msg, FlagEmotes.Fcy.value, event)
     elif "safety car" in msg.lower():
-        return addFlag(msg, FlagEmotes.SafetyCar.value)
+        return addFlag(msg, FlagEmotes.SafetyCar.value, event)
     elif any(
         x in msg.lower()
         for x in [
@@ -46,13 +48,13 @@ def formatWithFlags(msg):
             "yellow removed",
         ]
     ):
-        return addFlag(msg, FlagEmotes.Green.value)
+        return addFlag(msg, FlagEmotes.Green.value, event)
     elif any(x in msg.lower() for x in ["warning", "black / white", "black and white"]):
-        return addFlag(msg, FlagEmotes.BlackWhite.value)
+        return addFlag(msg, FlagEmotes.BlackWhite.value, event)
     elif any(x in msg.lower() for x in ["penalty", "black flag"]):
-        return addFlag(msg, FlagEmotes.Black.value)
+        return addFlag(msg, FlagEmotes.Black.value, event)
     elif "upgraded to code 60" in msg.lower():
-        return addFlag(msg, FlagEmotes.Code60.value)
+        return addFlag(msg, FlagEmotes.Code60.value, event)
     elif any(
         x in msg.lower()
         for x in [
@@ -64,33 +66,33 @@ def formatWithFlags(msg):
             "slow procedure",
         ]
     ):
-        return addFlag(msg, FlagEmotes.Yellow.value)
+        return addFlag(msg, FlagEmotes.Yellow.value, event)
     elif "retired" in msg.lower():
-        return addFlag(msg, FlagEmotes.Retired.value)
+        return addFlag(msg, FlagEmotes.Retired.value, event)
     elif "code 60" in msg.lower():
-        return addFlag(msg, FlagEmotes.Code60.value)
+        return addFlag(msg, FlagEmotes.Code60.value, event)
     elif any(x in msg.lower() for x in ["chequered flag", "checkered flag"]):
-        return addFlag(msg, FlagEmotes.Checkered.value)
+        return addFlag(msg, FlagEmotes.Checkered.value, event)
     elif "red flag" in msg.lower():
-        return addFlag(msg, FlagEmotes.Red.value)
+        return addFlag(msg, FlagEmotes.Red.value, event)
     elif "under investigation" in msg.lower():
-        return addFlag(msg, FlagEmotes.Investigation.value)
+        return addFlag(msg, FlagEmotes.Investigation.value, event)
     elif "track limits" in msg.lower():
-        return addFlag(msg, FlagEmotes.OffTrack.value)
+        return addFlag(msg, FlagEmotes.OffTrack.value, event)
     elif any(
         x in msg.lower() for x in ["black / orange", "black and orange", "meatball"]
     ):
-        return addFlag(msg, FlagEmotes.Meatball.value)
+        return addFlag(msg, FlagEmotes.Meatball.value, event)
     elif "blue flag" in msg.lower():
-        return addFlag(msg, FlagEmotes.Blue.value)
+        return addFlag(msg, FlagEmotes.Blue.value, event)
     elif "personal best" in msg.lower():
-        return addFlag(msg, FlagEmotes.PB.value)
+        return addFlag(msg, FlagEmotes.PB.value, event)
     elif "overall best" in msg.lower():
-        return addFlag(msg, FlagEmotes.SB.value)
+        return addFlag(msg, FlagEmotes.SB.value, event)
     elif "driver change" in msg.lower():
-        return addFlag(msg, FlagEmotes.DriverChange.value)
+        return addFlag(msg, FlagEmotes.DriverChange.value, event)
     else:
-        return msg
+        return addEvent(msg, event)
 
 
 def cleanCarInfoValue(spec, value):
