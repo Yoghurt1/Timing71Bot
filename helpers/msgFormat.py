@@ -23,13 +23,9 @@ class FlagEmotes(Enum):
     DriverChange = "🔄"
 
 
-def addSeparator(msg):
-    return "----------------------------------------\n" + msg
-
-
 def addFlag(msg, flag):
     msgWithFlag = flag + " " + msg + " " + flag
-    return addSeparator(msgWithFlag)
+    return msgWithFlag
 
 
 def formatWithFlags(msg):
@@ -94,7 +90,7 @@ def formatWithFlags(msg):
     elif "driver change" in msg.lower():
         return addFlag(msg, FlagEmotes.DriverChange.value)
     else:
-        return addSeparator(msg)
+        return msg
 
 
 def cleanCarInfoValue(spec, value):
@@ -116,7 +112,7 @@ def cleanCarInfoValue(spec, value):
 
 def formatCarInfo(carDict, spec):
     if isinstance(carDict, str):
-        return addSeparator(carDict)
+        return carDict
 
     res = ""
     if spec is not None:
@@ -131,7 +127,7 @@ def formatCarInfo(carDict, spec):
                 continue
             res = res + "{0}: {1}\n".format(key, cleanCarInfoValue(key, value))
 
-    return addSeparator(res)
+    return res
 
 
 def formatTrackInfo(trackInfo):
@@ -139,7 +135,7 @@ def formatTrackInfo(trackInfo):
     for key, value in trackInfo.items():
         res = res + "{0}: {1}\n".format(key, value)
 
-    return addSeparator(res)
+    return res
 
 
 def formatEventMessage(index, event):

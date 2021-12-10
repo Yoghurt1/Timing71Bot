@@ -31,7 +31,7 @@ class TimingCog(commands.Cog):
     @commands.has_any_role(_config.adminRole, _config.modRole)
     async def connect(self, ctx, eventNum):
         connectMsg = await ctx.send("Connecting to event number " + str(eventNum) + ".")
-        await self.bot.timingClient.connectToEvent(eventNum, connectMsg)
+        await self.bot.timingClient.connectToEvent(eventNum, ctx, connectMsg)
 
     @connect.error
     async def connectError(self, ctx, error):

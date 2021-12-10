@@ -32,7 +32,7 @@ def getRelay():
 TOKEN = os.environ["DISCORD_TOKEN"]
 TIMEOUT = 300
 NUM_REACTS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
-ECS_ID = 295518694694453248
+ECS_ID = 767481691529805846
 REACT_THRESHOLD = 5
 
 
@@ -89,7 +89,7 @@ class TimingSession(ApplicationSession):
                     )
 
                     await updatedMsg.delete()
-                    return await self.connectToEvent(str(idx + 1), threadMaster)
+                    return await self.connectToEvent(str(idx + 1), channel, threadMaster)
 
             await asyncio.sleep(1)
 
@@ -162,7 +162,7 @@ class TimingSession(ApplicationSession):
 
         self._currentEvent = []
 
-    async def connectToEvent(self, eventNum, ctx):
+    async def connectToEvent(self, eventNum, ctx, connectMsg):
         loop = asyncio.get_event_loop()
 
         self._lastTimestamp = time.time()
@@ -188,14 +188,20 @@ class TimingSession(ApplicationSession):
             description=self._currentEvent["description"],
         )
 
-        self._activeThread = await ctx.create_thread(name=threadName)
+        self._activeThread = await connectMsg.create_thread(name=threadName)
 
-        async def sendToDiscord(message):
+        def ctxDelegator(msg):
+            if msg[1] == "Track" or msg[3] in ["raceControl", "sb"]:
+                return ctx
+            else:
+                return self._activeThread
+
+        async def sendToDiscord(message, ctx):
             try:
                 await asyncio.sleep(int(self._config.delay))
                 logging.info("Sending message:")
                 logging.info(message)
-                await self._activeThread.send(message)
+                await ctx.send(message)
             except Exception as e:
                 logging.error("Failed to send message to Discord:")
                 logging.error(e)
@@ -210,7 +216,7 @@ class TimingSession(ApplicationSession):
                 logging.info(msg)
                 if float(msg[0]) > float(self._lastTimestamp):
                     asyncio.run_coroutine_threadsafe(
-                        sendToDiscord(self.formatTrackMessage(msg)), loop
+                        sendToDiscord(self.formatTrackMessage(msg), ctxDelegator(msg)), loop
                     )
 
             self._lastTimestamp = newMsg["payload"]["messages"][0][0]
@@ -238,13 +244,13 @@ class TimingSession(ApplicationSession):
                     )
                     carDetailsFut.add_done_callback(
                         lambda fut: asyncio.run_coroutine_threadsafe(
-                            sendToDiscord(self.formatCarMessage(msg, self._carDetails)),
+                            sendToDiscord(self.formatCarMessage(msg, self._carDetails), ctxDelegator(msg)),
                             loop,
                         )
                     )
                 else:
                     asyncio.run_coroutine_threadsafe(
-                        sendToDiscord(self.formatCarMessage(msg)), loop
+                        sendToDiscord(self.formatCarMessage(msg), ctxDelegator(msg)), loop
                     )
 
         def onNewPitMessage(newMsg):
