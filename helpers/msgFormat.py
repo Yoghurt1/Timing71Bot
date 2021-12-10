@@ -28,7 +28,7 @@ def addFlag(msg, flag, event):
     return addEvent(msgWithFlag, event)
 
 def addEvent(msg, event):
-    return "{name} - {description}\n{msg}".format(name=event["name"], description=event["description"], msg=msg)
+    return "**{name} - {description}**\n{msg}".format(name=event["name"], description=event["description"], msg=msg)
 
 def formatWithFlags(msg, event):
     if any(
