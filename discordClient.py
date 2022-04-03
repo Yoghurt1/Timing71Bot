@@ -14,9 +14,9 @@ class DiscordClient(commands.Bot):
         super().__init__(command_prefix=".")
 
         self.timingClient = timingClient
-        self.load_extension("cogs.timingCog")
-        self.load_extension("cogs.managementCog")
-        self.load_extension("cogs.memeCog")
+        await self.load_extension("cogs.timingCog")
+        await self.load_extension("cogs.managementCog")
+        await self.load_extension("cogs.memeCog")
 
         _commands = tuple([".{0}".format(i) for i in self.commands])
 
