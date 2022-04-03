@@ -9,14 +9,14 @@ class DiscordClient(commands.Bot):
     async def on_ready(self):
         logging.info("We have logged in as {0.user}".format(self))
         await self.timingClient.fetchEvents()
+        await self.load_extension("cogs.timingCog")
+        await self.load_extension("cogs.managementCog")
+        await self.load_extension("cogs.memeCog")
 
     def __init__(self, timingClient):
         super().__init__(command_prefix=".")
 
         self.timingClient = timingClient
-        await self.load_extension("cogs.timingCog")
-        await self.load_extension("cogs.managementCog")
-        await self.load_extension("cogs.memeCog")
 
         _commands = tuple([".{0}".format(i) for i in self.commands])
 
