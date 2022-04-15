@@ -25,5 +25,5 @@ class MemeCog(commands.Cog):
         await ctx.send("{0} days".format(delta.days))
 
 
-def setup(bot):
-    bot.add_cog(MemeCog(bot))
+async def setup(bot):
+    await bot.add_cog(MemeCog(bot))

@@ -112,7 +112,7 @@ def setupHelp(cog: TimingCog):
     return cog
 
 
-def setup(bot):
+async def setup(bot):
     timingCog = setupHelp(TimingCog(bot))
 
-    bot.add_cog(timingCog)
+    await bot.add_cog(timingCog)

@@ -38,5 +38,5 @@ class ManagementCog(commands.Cog):
         )
 
 
-def setup(bot):
-    bot.add_cog(ManagementCog(bot))
+async def setup(bot):
+    await bot.add_cog(ManagementCog(bot))
